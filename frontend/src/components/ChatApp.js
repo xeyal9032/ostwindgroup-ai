@@ -70,9 +70,9 @@ const ChatApp = () => {
   }
 
   return (
-    <div className="flex h-screen bg-background overflow-hidden">
+    <div className="flex h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 overflow-hidden">
       {/* Desktop Sidebar */}
-      <div className="hidden md:block w-80 border-r bg-card/50 backdrop-blur-sm">
+      <div className="hidden md:block w-80 glass-card border-r border-white/20 animate-slide-in-left">
         <ChatList
           conversations={conversations}
           currentConversationId={currentConversationId}
@@ -86,16 +86,21 @@ const ChatApp = () => {
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col relative">
         {/* Mobile Header */}
-        <div className="md:hidden flex items-center justify-between p-4 border-b bg-card/80 backdrop-blur-sm">
+        <div className="md:hidden flex items-center justify-between p-4 glass-card border-b border-white/20 animate-fade-in-up">
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-primary/20 to-primary/10 rounded-full flex items-center justify-center">
-              <span className="text-primary font-bold text-sm">AI</span>
+            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center shadow-glow animate-float">
+              <span className="text-white font-bold text-lg">AI</span>
             </div>
-            <h1 className="text-lg font-semibold">OstWindGroup AI</h1>
+            <div>
+              <h1 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                OstWindGroup AI
+              </h1>
+              <p className="text-xs text-slate-600 dark:text-slate-400">Akıllı Asistan</p>
+            </div>
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 px-3 py-1 bg-green-100 dark:bg-green-900/30 rounded-full">
             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-            <span className="text-xs text-green-600 font-medium">Çevrimiçi</span>
+            <span className="text-xs text-green-600 dark:text-green-400 font-medium">Çevrimiçi</span>
           </div>
         </div>
 

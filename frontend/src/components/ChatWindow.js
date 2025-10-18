@@ -150,59 +150,83 @@ const ChatWindow = ({ conversationId, onNewConversation, onMessagesUpdate }) => 
   return (
     <div className="flex flex-col h-full">
       {/* Desktop Header - Hidden on mobile */}
-      <div className="hidden md:block p-4 border-b bg-gradient-to-r from-background to-background/95 backdrop-blur-sm shadow-sm">
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-primary/20 to-primary/10 rounded-full flex items-center justify-center shadow-sm">
-            <Bot className="w-5 h-5 text-primary" />
+      <div className="hidden md:block p-6 glass-card border-b border-white/20 animate-fade-in-up">
+        <div className="flex items-center space-x-4">
+          <div className="w-12 h-12 bg-gradient-to-br from-purple-500 via-pink-500 to-red-500 rounded-2xl flex items-center justify-center shadow-glow animate-float">
+            <Bot className="w-6 h-6 text-white" />
           </div>
           <div className="flex-1">
-            <h2 className="text-lg font-semibold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-red-600 bg-clip-text text-transparent">
               {conversationId ? 'AI Asistan' : 'Yeni Sohbet'}
             </h2>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+              {conversationId ? 'Size yardımcı olmaya hazırım' : 'Hemen başlayalım'}
+            </p>
           </div>
           {conversationId && (
-            <div className="flex items-center space-x-2 px-3 py-1 bg-green-50 dark:bg-green-900/20 rounded-full">
+            <div className="flex items-center space-x-2 px-4 py-2 bg-green-100 dark:bg-green-900/30 rounded-full">
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-xs text-green-600 dark:text-green-400 font-medium">Çevrimiçi</span>
+              <span className="text-sm text-green-600 dark:text-green-400 font-medium">Çevrimiçi</span>
             </div>
           )}
         </div>
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 md:space-y-6 bg-gradient-to-b from-background via-background/98 to-background/95">
+      <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-gradient-to-b from-transparent via-transparent to-transparent">
         {loadingMessages ? (
           <div className="flex justify-center items-center h-32">
-            <div className="text-muted-foreground">Mesajlar yükleniyor...</div>
+            <div className="flex items-center space-x-3 text-slate-600 dark:text-slate-400">
+              <div className="w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+              <span className="text-sm font-medium">Mesajlar yükleniyor...</span>
+            </div>
           </div>
         ) : messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-center px-4">
-            <Bot className="w-12 h-12 md:w-16 md:h-16 text-muted-foreground mb-4" />
-            <h3 className="text-lg md:text-xl font-semibold mb-2">OstWindGroup AI'ya Hoş Geldiniz</h3>
-            <p className="text-sm md:text-base text-muted-foreground mb-4 max-w-md">
-              Size nasıl yardımcı olabilirim? Aşağıya mesajınızı yazın.
+          <div className="flex flex-col items-center justify-center h-full text-center px-4 animate-fade-in-up">
+            <div className="w-20 h-20 bg-gradient-to-br from-purple-500 via-pink-500 to-red-500 rounded-3xl flex items-center justify-center shadow-glow-lg animate-float mb-6">
+              <Bot className="w-10 h-10 text-white" />
+            </div>
+            <h3 className="text-2xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-red-600 bg-clip-text text-transparent mb-3">
+              OstWindGroup AI'ya Hoş Geldiniz
+            </h3>
+            <p className="text-lg text-slate-600 dark:text-slate-400 mb-6 max-w-md leading-relaxed">
+              Size nasıl yardımcı olabilirim? Aşağıya mesajınızı yazın ve akıllı sohbetimizi başlatalım.
             </p>
+            <div className="flex flex-wrap gap-2 justify-center">
+              <span className="px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-full text-sm">
+                💡 Soru sorabilirsiniz
+              </span>
+              <span className="px-3 py-1 bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300 rounded-full text-sm">
+                🚀 Projelerinizde yardım
+              </span>
+              <span className="px-3 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-full text-sm">
+                📚 Bilgi alabilirsiniz
+              </span>
+            </div>
           </div>
         ) : (
-          messages.map((message) => (
-            <Message
-              key={message.id}
-              message={message}
-              time={formatTime(message.timestamp)}
-              onEdit={handleEditMessage}
-            />
+          messages.map((message, index) => (
+            <div key={message.id} className={`animate-fade-in-up animate-delay-${Math.min(index * 100, 500)}`}>
+              <Message
+                message={message}
+                time={formatTime(message.timestamp)}
+                onEdit={handleEditMessage}
+              />
+            </div>
           ))
         )}
         
         {isLoading && (
-          <div className="flex items-center space-x-3 text-muted-foreground">
-            <Bot className="w-5 h-5" />
+          <div className="flex items-center space-x-3 text-slate-600 dark:text-slate-400 animate-fade-in-up">
+            <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+              <Bot className="w-4 h-4 text-white" />
+            </div>
             <div className="flex items-center space-x-2">
-              <span className="text-sm">Yazıyor</span>
+              <span className="text-sm font-medium">Yazıyor</span>
               <div className="flex space-x-1">
-                <div className="w-2 h-2 bg-current rounded-full animate-bounce"></div>
-                <div className="w-2 h-2 bg-current rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                <div className="w-2 h-2 bg-current rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce"></div>
+                <div className="w-2 h-2 bg-pink-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                <div className="w-2 h-2 bg-red-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
               </div>
             </div>
           </div>
@@ -212,22 +236,22 @@ const ChatWindow = ({ conversationId, onNewConversation, onMessagesUpdate }) => 
       </div>
 
       {/* Input */}
-      <div className="p-4 md:p-6 border-t bg-gradient-to-t from-card to-card/95 backdrop-blur-sm shadow-lg">
+      <div className="p-6 glass-card border-t border-white/20 animate-fade-in-up">
         {selectedFile && (
           <div className="mb-4">
             <FilePreview file={selectedFile} onRemove={handleFileRemove} />
           </div>
         )}
         
-        <form onSubmit={handleSendMessage} className="flex space-x-2 md:space-x-3">
+        <form onSubmit={handleSendMessage} className="flex space-x-3">
           <div className="flex-1 relative">
-            <div className="relative bg-background/80 backdrop-blur-sm border border-border/50 rounded-xl md:rounded-2xl shadow-sm hover:shadow-md transition-all duration-200 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary/50">
+            <div className="relative glass-card border border-white/20 rounded-2xl shadow-glow hover:shadow-glow-lg transition-all duration-300 focus-within:ring-2 focus-within:ring-purple-500/50 focus-within:border-purple-500/50">
               <textarea
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
                 placeholder="Mesajınızı yazın..."
                 disabled={isLoading}
-                className="w-full min-h-[44px] max-h-24 md:max-h-32 px-3 md:px-4 py-2 md:py-3 pr-12 md:pr-16 bg-transparent border-0 rounded-xl md:rounded-2xl resize-none focus:outline-none placeholder:text-muted-foreground/70 text-sm md:text-base"
+                className="w-full min-h-[56px] max-h-32 px-4 py-4 pr-16 bg-transparent border-0 rounded-2xl resize-none focus:outline-none placeholder:text-slate-500 dark:placeholder:text-slate-400 text-slate-900 dark:text-slate-100"
                 rows={1}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
@@ -237,11 +261,11 @@ const ChatWindow = ({ conversationId, onNewConversation, onMessagesUpdate }) => 
                 }}
                 onInput={(e) => {
                   e.target.style.height = 'auto';
-                  e.target.style.height = Math.min(e.target.scrollHeight, 96) + 'px';
+                  e.target.style.height = Math.min(e.target.scrollHeight, 128) + 'px';
                 }}
               />
               
-              <div className="absolute right-2 md:right-3 top-2 md:top-3 flex items-center space-x-1">
+              <div className="absolute right-3 top-3 flex items-center space-x-1">
                 <VoiceMessageButton onVoiceMessage={handleVoiceMessage} disabled={isLoading} />
                 <FileUploadButton onFileSelect={handleFileSelect} disabled={isLoading} />
                 <EmojiPickerButton onEmojiSelect={handleEmojiSelect} />
@@ -252,13 +276,13 @@ const ChatWindow = ({ conversationId, onNewConversation, onMessagesUpdate }) => 
           <Button 
             type="submit" 
             disabled={(!inputMessage.trim() && !selectedFile) || isLoading}
-            className="h-11 md:h-12 w-11 md:w-12 rounded-full bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="h-14 w-14 rounded-2xl bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 hover:from-purple-600 hover:via-pink-600 hover:to-red-600 shadow-glow hover:shadow-glow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed animate-scale-in"
             size="icon"
           >
             {isLoading ? (
-              <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
             ) : (
-              <Send className="w-4 h-4" />
+              <Send className="w-5 h-5 text-white" />
             )}
           </Button>
         </form>
