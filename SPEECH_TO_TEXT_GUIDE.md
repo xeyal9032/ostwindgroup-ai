@@ -116,3 +116,4 @@ Body: audio_file (binary)
 Sesli mesaj özelliği tamamen hazır! Şu anda demo modunda çalışıyor ve Google Cloud Speech-to-Text API anahtarı ile gerçek ses-metin çevirisi yapabilir.
 
 **Test için**: 🎤 butonuna tıklayıp ses kaydedin ve gönderin!
+

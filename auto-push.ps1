@@ -34,3 +34,4 @@ Write-Host "🔗 Repository: https://github.com/xeyal9032/ostwindgroup-ai" -Fore
 Write-Host ""
 
 Read-Host "Devam etmek için Enter'a basın"
+

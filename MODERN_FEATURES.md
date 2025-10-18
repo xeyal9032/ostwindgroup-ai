@@ -99,3 +99,4 @@ Uygulamanız artık **modern ve profesyonel** bir chat uygulaması! Kullanıcıl
 6. **AI ile gerçek sohbet eder**
 
 **Tebrikler! Profesyonel bir AI Chat uygulamanız var!** 🎉
+

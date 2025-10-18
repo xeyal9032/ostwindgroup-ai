@@ -115,3 +115,4 @@ Artık input alanı **modern, profesyonel ve kullanıcı dostu**! Tüm özellikl
 5. Dosya yükleyin ve emoji ekleyin
 
 **Modern profesyonel tasarım hazır!** 🎨✨
+

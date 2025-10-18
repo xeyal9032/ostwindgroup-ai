@@ -27,3 +27,4 @@ echo ✅ GitHub push tamamlandı!
 echo 🔗 Repository: https://github.com/xeyal9032/ostwindgroup-ai
 echo.
 pause
+

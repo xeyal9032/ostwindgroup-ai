@@ -111,3 +111,4 @@ Sorun yaşıyorsanız:
 2. API anahtarınızı doğrulayın
 3. OpenAI hesabınızda kredi olduğundan emin olun
 4. Port çakışmalarını kontrol edin (3000, 8000)
+
