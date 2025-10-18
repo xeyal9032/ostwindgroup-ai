@@ -77,6 +77,8 @@ const ChatWindow = ({ conversationId, onNewConversation, onMessagesUpdate }) => 
 
     try {
       console.log('Sending message:', inputMessage.trim(), 'to conversation:', conversationId || 'new');
+      console.log('API Base URL:', process.env.REACT_APP_API_URL || '/.netlify/functions/api');
+      
       const response = await chatService.sendMessage(conversationId || 'new', inputMessage.trim());
       console.log('Received response:', response);
       
