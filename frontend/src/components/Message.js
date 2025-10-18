@@ -94,7 +94,7 @@ const Message = ({ message, time, onEdit }) => {
                   : "bg-background/80 backdrop-blur-sm border-border/50"
               )}>
                 <CardContent className="p-3 md:p-4">
-                  <div className="whitespace-pre-wrap break-words leading-relaxed text-sm md:text-base">
+                  <div className="message-text leading-relaxed text-sm md:text-base">
                     {message.content}
                   </div>
                 </CardContent>
