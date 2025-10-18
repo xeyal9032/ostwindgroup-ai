@@ -70,9 +70,9 @@ const ChatApp = () => {
   }
 
   return (
-    <div className="flex h-screen bg-background">
+    <div className="flex h-screen bg-background overflow-hidden">
       {/* Desktop Sidebar */}
-      <div className="hidden md:block w-80 border-r bg-card">
+      <div className="hidden md:block w-80 border-r bg-card/50 backdrop-blur-sm">
         <ChatList
           conversations={conversations}
           currentConversationId={currentConversationId}
@@ -84,12 +84,28 @@ const ChatApp = () => {
       </div>
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col md:pb-0 pb-16">
-        <ChatWindow
-          conversationId={currentConversationId}
-          onNewConversation={handleNewConversation}
-          onMessagesUpdate={setAllMessages}
-        />
+      <div className="flex-1 flex flex-col relative">
+        {/* Mobile Header */}
+        <div className="md:hidden flex items-center justify-between p-4 border-b bg-card/80 backdrop-blur-sm">
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 bg-gradient-to-br from-primary/20 to-primary/10 rounded-full flex items-center justify-center">
+              <span className="text-primary font-bold text-sm">AI</span>
+            </div>
+            <h1 className="text-lg font-semibold">OstWindGroup AI</h1>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+            <span className="text-xs text-green-600 font-medium">Çevrimiçi</span>
+          </div>
+        </div>
+
+        <div className="flex-1 flex flex-col md:pb-0 pb-20">
+          <ChatWindow
+            conversationId={currentConversationId}
+            onNewConversation={handleNewConversation}
+            onMessagesUpdate={setAllMessages}
+          />
+        </div>
       </div>
 
       {/* Mobile Navigation */}

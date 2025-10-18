@@ -147,8 +147,8 @@ const ChatWindow = ({ conversationId, onNewConversation, onMessagesUpdate }) => 
 
   return (
     <div className="flex flex-col h-full">
-      {/* Header */}
-      <div className="p-4 border-b bg-gradient-to-r from-background to-background/95 backdrop-blur-sm shadow-sm">
+      {/* Desktop Header - Hidden on mobile */}
+      <div className="hidden md:block p-4 border-b bg-gradient-to-r from-background to-background/95 backdrop-blur-sm shadow-sm">
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 bg-gradient-to-br from-primary/20 to-primary/10 rounded-full flex items-center justify-center shadow-sm">
             <Bot className="w-5 h-5 text-primary" />
@@ -168,16 +168,16 @@ const ChatWindow = ({ conversationId, onNewConversation, onMessagesUpdate }) => 
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-gradient-to-b from-background via-background/98 to-background/95">
+      <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 md:space-y-6 bg-gradient-to-b from-background via-background/98 to-background/95">
         {loadingMessages ? (
           <div className="flex justify-center items-center h-32">
             <div className="text-muted-foreground">Mesajlar yükleniyor...</div>
           </div>
         ) : messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-center">
-            <Bot className="w-16 h-16 text-muted-foreground mb-4" />
-            <h3 className="text-xl font-semibold mb-2">OstWindGroup AI'ya Hoş Geldiniz</h3>
-            <p className="text-muted-foreground mb-4">
+          <div className="flex flex-col items-center justify-center h-full text-center px-4">
+            <Bot className="w-12 h-12 md:w-16 md:h-16 text-muted-foreground mb-4" />
+            <h3 className="text-lg md:text-xl font-semibold mb-2">OstWindGroup AI'ya Hoş Geldiniz</h3>
+            <p className="text-sm md:text-base text-muted-foreground mb-4 max-w-md">
               Size nasıl yardımcı olabilirim? Aşağıya mesajınızı yazın.
             </p>
           </div>
@@ -210,22 +210,22 @@ const ChatWindow = ({ conversationId, onNewConversation, onMessagesUpdate }) => 
       </div>
 
       {/* Input */}
-      <div className="p-6 border-t bg-gradient-to-t from-card to-card/95 backdrop-blur-sm shadow-lg">
+      <div className="p-4 md:p-6 border-t bg-gradient-to-t from-card to-card/95 backdrop-blur-sm shadow-lg">
         {selectedFile && (
           <div className="mb-4">
             <FilePreview file={selectedFile} onRemove={handleFileRemove} />
           </div>
         )}
         
-        <form onSubmit={handleSendMessage} className="flex space-x-3">
+        <form onSubmit={handleSendMessage} className="flex space-x-2 md:space-x-3">
           <div className="flex-1 relative">
-            <div className="relative bg-background/80 backdrop-blur-sm border border-border/50 rounded-2xl shadow-sm hover:shadow-md transition-all duration-200 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary/50">
+            <div className="relative bg-background/80 backdrop-blur-sm border border-border/50 rounded-xl md:rounded-2xl shadow-sm hover:shadow-md transition-all duration-200 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary/50">
               <textarea
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
-                placeholder="Mesajınızı yazın... (Ctrl+Enter gönder)"
+                placeholder="Mesajınızı yazın..."
                 disabled={isLoading}
-                className="w-full min-h-[48px] max-h-32 px-4 py-3 pr-16 bg-transparent border-0 rounded-2xl resize-none focus:outline-none placeholder:text-muted-foreground/70"
+                className="w-full min-h-[44px] max-h-24 md:max-h-32 px-3 md:px-4 py-2 md:py-3 pr-12 md:pr-16 bg-transparent border-0 rounded-xl md:rounded-2xl resize-none focus:outline-none placeholder:text-muted-foreground/70 text-sm md:text-base"
                 rows={1}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
@@ -235,11 +235,11 @@ const ChatWindow = ({ conversationId, onNewConversation, onMessagesUpdate }) => 
                 }}
                 onInput={(e) => {
                   e.target.style.height = 'auto';
-                  e.target.style.height = Math.min(e.target.scrollHeight, 128) + 'px';
+                  e.target.style.height = Math.min(e.target.scrollHeight, 96) + 'px';
                 }}
               />
               
-              <div className="absolute right-3 top-3 flex items-center space-x-1">
+              <div className="absolute right-2 md:right-3 top-2 md:top-3 flex items-center space-x-1">
                 <VoiceMessageButton onVoiceMessage={handleVoiceMessage} disabled={isLoading} />
                 <FileUploadButton onFileSelect={handleFileSelect} disabled={isLoading} />
                 <EmojiPickerButton onEmojiSelect={handleEmojiSelect} />
@@ -250,7 +250,7 @@ const ChatWindow = ({ conversationId, onNewConversation, onMessagesUpdate }) => 
           <Button 
             type="submit" 
             disabled={(!inputMessage.trim() && !selectedFile) || isLoading}
-            className="h-12 w-12 rounded-full bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="h-11 md:h-12 w-11 md:w-12 rounded-full bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             size="icon"
           >
             {isLoading ? (
