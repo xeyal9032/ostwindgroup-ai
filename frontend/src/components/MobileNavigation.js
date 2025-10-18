@@ -7,7 +7,8 @@ import {
   Settings, 
   X,
   Plus,
-  Bell
+  Bell,
+  Activity
 } from 'lucide-react';
 import { useNotifications } from './NotificationBell';
 
