@@ -1,70 +1,127 @@
-# Getting Started with Create React App
+# OstWindGroup AI Frontend
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Modern React tabanlı AI chat uygulaması frontend'i.
 
-## Available Scripts
+## 🚀 Özellikler
 
-In the project directory, you can run:
+- **Modern UI**: Tailwind CSS ve Shadcn/ui ile tasarlanmış
+- **Responsive Design**: Mobil ve masaüstü uyumlu
+- **Real-time Chat**: AI asistanı ile anlık sohbet
+- **Sohbet Yönetimi**: Sohbet geçmişi ve yönetimi
+- **Türkçe Destek**: Tam Türkçe arayüz
 
-### `npm start`
+## 🛠️ Teknolojiler
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+- **React 18**: Modern React hooks ve functional components
+- **React Router**: Sayfa yönlendirme
+- **Tailwind CSS**: Utility-first CSS framework
+- **Shadcn/ui**: Modern UI bileşenleri
+- **Axios**: HTTP istekleri
+- **Lucide React**: Modern ikonlar
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## 📦 Kurulum
 
-### `npm test`
+1. Bağımlılıkları yükleyin:
+```bash
+npm install
+```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+2. Environment variables dosyasını oluşturun:
+```bash
+cp .env.example .env
+```
 
-### `npm run build`
+3. `.env` dosyasını düzenleyin:
+```env
+REACT_APP_API_URL=http://localhost:8000/api
+REACT_APP_APP_NAME=OstWindGroup AI
+REACT_APP_APP_VERSION=1.0.0
+REACT_APP_DEBUG=true
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## 🚀 Çalıştırma
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### Development
+```bash
+npm start
+```
+Uygulama http://localhost:3000 adresinde çalışacak.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### Production Build
+```bash
+npm run build
+```
 
-### `npm run eject`
+## 📁 Proje Yapısı
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+```
+src/
+├── components/          # React bileşenleri
+│   ├── ui/             # Shadcn/ui bileşenleri
+│   ├── ChatApp.js      # Ana chat uygulaması
+│   ├── ChatList.js     # Sohbet listesi
+│   ├── ChatWindow.js   # Chat penceresi
+│   └── Message.js      # Mesaj bileşeni
+├── services/           # API servisleri
+│   └── api.js         # API client
+├── lib/               # Utility fonksiyonları
+│   └── utils.js       # Tailwind merge utility
+├── hooks/             # Custom React hooks
+├── utils/             # Genel utility fonksiyonları
+├── App.js             # Ana uygulama bileşeni
+├── index.js           # Uygulama giriş noktası
+└── index.css          # Global stiller
+```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## 🔧 API Entegrasyonu
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+Backend API ile iletişim için `services/api.js` dosyası kullanılır:
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+- **conversationService**: Sohbet yönetimi
+- **chatService**: AI chat işlemleri
 
-## Learn More
+## 🎨 UI Bileşenleri
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+Shadcn/ui bileşenleri kullanılır:
+- Button
+- Input
+- Card
+- Ve daha fazlası...
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## 📱 Responsive Design
 
-### Code Splitting
+- **Desktop**: Yan yana chat listesi ve chat penceresi
+- **Mobile**: Tam ekran chat deneyimi
+- **Tablet**: Uyarlanabilir layout
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+## 🔒 Güvenlik
 
-### Analyzing the Bundle Size
+- Environment variables ile API URL yönetimi
+- CORS desteği backend ile uyumlu
+- XSS koruması React ile sağlanır
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+## 🚀 Deployment
 
-### Making a Progressive Web App
+### Vercel
+```bash
+npm run build
+# Vercel'e deploy edin
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+### Netlify
+```bash
+npm run build
+# Netlify'e deploy edin
+```
 
-### Advanced Configuration
+## 🤝 Katkıda Bulunma
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+1. Fork yapın
+2. Feature branch oluşturun (`git checkout -b feature/amazing-feature`)
+3. Commit yapın (`git commit -m 'Add amazing feature'`)
+4. Push yapın (`git push origin feature/amazing-feature`)
+5. Pull Request oluşturun
 
-### Deployment
+## 📄 Lisans
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Bu proje OstWindGroup tarafından geliştirilmiştir.
