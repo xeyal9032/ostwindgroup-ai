@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || '/.netlify/functions/api';
 
@@ -8,6 +9,23 @@ const api = axios.create({
     'Content-Type': 'application/json',
   },
 });
+
+// Direct Gemini AI integration for frontend
+const getGeminiResponse = async (message) => {
+  try {
+    const genAI = new GoogleGenerativeAI('AIzaSyBkyjV92E_lJVrVWw9DMW71g6aspyCa_40');
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    
+    const prompt = `Sen OstWindGroup AI, kullanıcılara yardımcı olan zeki bir asistansın. Her zaman Türkçe konuş ve yardımcı ol. Kullanıcı mesajı: "${message}"`;
+    
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    return response.text();
+  } catch (error) {
+    console.error('Gemini AI error:', error);
+    return `Üzgünüm, AI servisinde bir hata oluştu: ${error.message}. Lütfen tekrar deneyin.`;
+  }
+};
 
 // API servisleri
 export const conversationService = {
@@ -46,12 +64,35 @@ export const chatService = {
   // AI ile sohbet et
   sendMessage: async (conversationId, message) => {
     console.log('API call - sendMessage:', { conversationId, message });
-    const response = await api.post('/chat', {
-      message,
-      conversation_id: conversationId,
-    });
-    console.log('API response:', response.data);
-    return response.data;
+    
+    try {
+      // Direct Gemini AI call
+      const aiResponse = await getGeminiResponse(message);
+      
+      const response = {
+        conversation_id: conversationId || 'conv-' + Date.now(),
+        user_message: {
+          id: 'user-' + Date.now(),
+          conversation_id: conversationId || 'conv-' + Date.now(),
+          role: 'user',
+          content: message,
+          timestamp: new Date().toISOString(),
+        },
+        assistant_message: {
+          id: 'assistant-' + Date.now(),
+          conversation_id: conversationId || 'conv-' + Date.now(),
+          role: 'assistant',
+          content: aiResponse,
+          timestamp: new Date().toISOString(),
+        },
+      };
+      
+      console.log('API response:', response);
+      return response;
+    } catch (error) {
+      console.error('Chat service error:', error);
+      throw error;
+    }
   },
 };
 
