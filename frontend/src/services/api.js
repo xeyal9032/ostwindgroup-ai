@@ -13,7 +13,12 @@ const api = axios.create({
 // Direct Gemini AI integration for frontend
 const getGeminiResponse = async (message) => {
   try {
-    const genAI = new GoogleGenerativeAI('AIzaSyBkyjV92E_lJVrVWw9DMW71g6aspyCa_40');
+    const apiKey = process.env.REACT_APP_GOOGLE_AI_API_KEY;
+    if (!apiKey) {
+      throw new Error('Google AI API key not found');
+    }
+    
+    const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
     
     const prompt = `Sen OstWindGroup AI, kullanıcılara yardımcı olan zeki bir asistansın. Her zaman Türkçe konuş ve yardımcı ol. Kullanıcı mesajı: "${message}"`;
