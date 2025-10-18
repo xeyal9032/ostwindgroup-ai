@@ -1,3 +1,6 @@
+// Google AI (Gemini) API integration
+const { GoogleGenerativeAI } = require('@google/generative-ai');
+
 exports.handler = async (event, context) => {
   // CORS headers
   const headers = {
@@ -51,10 +54,27 @@ exports.handler = async (event, context) => {
       
       console.log('Chat request:', { message, conversation_id });
       
-      // Mock AI response
-      const aiResponse = `Merhaba! "${message}" mesajınızı aldım. Bu bir demo yanıttır. Gerçek AI entegrasyonu için API anahtarı gerekli. Size nasıl yardımcı olabilirim?`;
+      // Initialize Gemini AI
+      const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY);
+      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
       
-      const conversationId = conversation_id || 'demo-' + Date.now();
+      let aiResponse = '';
+      
+      try {
+        // Generate AI response using Gemini
+        const prompt = `Sen OstWindGroup AI, kullanıcılara yardımcı olan zeki bir asistansın. Her zaman Türkçe konuş ve yardımcı ol. Kullanıcı mesajı: "${message}"`;
+        
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        aiResponse = response.text();
+        
+        console.log('Gemini AI response:', aiResponse);
+      } catch (error) {
+        console.error('Gemini AI error:', error);
+        aiResponse = `Üzgünüm, AI servisinde bir hata oluştu: ${error.message}. Lütfen tekrar deneyin.`;
+      }
+      
+      const conversationId = conversation_id || 'conv-' + Date.now();
       
       const response = {
         conversation_id: conversationId,

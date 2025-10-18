@@ -8,6 +8,7 @@
 # Netlify Functions
 [functions]
   directory = "netlify/functions"
+  node_bundler = "esbuild"
 
 # Custom domain ayarları
 [[headers]]
