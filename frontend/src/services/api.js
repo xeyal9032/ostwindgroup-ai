@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || '/.netlify/functions/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
