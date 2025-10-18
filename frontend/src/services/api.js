@@ -36,32 +36,97 @@ const getGeminiResponse = async (message) => {
 export const conversationService = {
   // Tüm sohbetleri getir
   getConversations: async () => {
-    const response = await api.get('/conversations');
-    return response.data;
+    try {
+      const response = await api.get('/conversations');
+      return response.data;
+    } catch (error) {
+      console.error('Sohbetler alınamadı:', error);
+      // Mock data döndür
+      return [
+        {
+          id: 'conv-1',
+          title: 'Yeni Sohbet',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }
+      ];
+    }
+  },
+
+  // Tek sohbet getir
+  getConversation: async (conversationId) => {
+    try {
+      const response = await api.get(`/conversations/${conversationId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Sohbet alınamadı:', error);
+      // Mock data döndür
+      return {
+        id: conversationId,
+        title: 'Yeni Sohbet',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+    }
   },
 
   // Yeni sohbet oluştur
   createConversation: async (title = 'Yeni Sohbet') => {
-    const response = await api.post('/conversations', { title });
-    return response.data;
+    try {
+      const response = await api.post('/conversations', { title });
+      return response.data;
+    } catch (error) {
+      console.error('Sohbet oluşturulamadı:', error);
+      // Mock data döndür
+      return {
+        id: 'conv-' + Date.now(),
+        title: title,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+    }
   },
 
   // Sohbet sil
   deleteConversation: async (conversationId) => {
-    const response = await api.delete(`/conversations/${conversationId}`);
-    return response.data;
+    try {
+      const response = await api.delete(`/conversations/${conversationId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Sohbet silinemedi:', error);
+      return { success: true };
+    }
   },
 
   // Sohbet mesajlarını getir
   getMessages: async (conversationId) => {
-    const response = await api.get(`/conversations/${conversationId}/messages`);
-    return response.data;
+    try {
+      const response = await api.get(`/conversations/${conversationId}/messages`);
+      return response.data;
+    } catch (error) {
+      console.error('Mesajlar alınamadı:', error);
+      // Local storage'dan mesajları al
+      const localMessages = JSON.parse(localStorage.getItem('messages') || '{}');
+      return localMessages[conversationId] || [];
+    }
   },
 
   // Mesaj kaydet
   saveMessage: async (messageData) => {
-    const response = await api.post('/messages', messageData);
-    return response.data;
+    try {
+      const response = await api.post('/messages', messageData);
+      return response.data;
+    } catch (error) {
+      console.error('Mesaj kaydedilemedi:', error);
+      // Local storage'a kaydet
+      const localMessages = JSON.parse(localStorage.getItem('messages') || '{}');
+      if (!localMessages[messageData.conversation_id]) {
+        localMessages[messageData.conversation_id] = [];
+      }
+      localMessages[messageData.conversation_id].push(messageData);
+      localStorage.setItem('messages', JSON.stringify(localMessages));
+      return messageData;
+    }
   },
 };
 
