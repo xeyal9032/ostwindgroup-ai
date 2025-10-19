@@ -1,4 +1,9 @@
-from fastapi import FastAPI, APIRouter, HTTPException, UploadFile, File
+from fastapi import FastAPI, APIRouter, HTTPException, UploadFile, File, Request, Depends
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -14,6 +19,7 @@ import google.generativeai as genai
 import io
 import base64
 from google.cloud import speech
+import time
 
 ROOT_DIR = Path(__file__).parent
 # load_dotenv(ROOT_DIR / '.env')  # Commented out to avoid .env file
@@ -53,8 +59,19 @@ if GOOGLE_AI_API_KEY:
 else:
     print("No AI API key provided - using demo responses")
 
+# Rate limiting setup
+limiter = Limiter(key_func=get_remote_address)
+
 # Create the main app without a prefix
-app = FastAPI(title="OstWindGroup AI API", version="1.0.0")
+app = FastAPI(
+    title="OstWindGroup AI API", 
+    version="1.0.0",
+    description="Secure AI Chat API with rate limiting and security features"
+)
+
+# Add rate limiting
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
@@ -174,13 +191,14 @@ async def get_messages_endpoint(conversation_id: str):
     return messages
 
 @api_router.post("/chat", response_model=ChatResponse)
-async def chat(request: ChatRequest):
+@limiter.limit("10/minute")  # 10 requests per minute per IP
+async def chat(request: Request, chat_request: ChatRequest):
     try:
         # Create conversation if not exists
-        conversation_id = request.conversation_id
+        conversation_id = chat_request.conversation_id
         if not conversation_id:
             # Extract first 50 chars as title
-            title = request.message[:50] + "..." if len(request.message) > 50 else request.message
+            title = chat_request.message[:50] + "..." if len(chat_request.message) > 50 else chat_request.message
             conversation = Conversation(title=title)
             conversation_id = conversation.id
             await save_conversation(conversation)
@@ -189,7 +207,7 @@ async def chat(request: ChatRequest):
         user_message = Message(
             conversation_id=conversation_id,
             role="user",
-            content=request.message
+            content=chat_request.message
         )
         await save_message(user_message)
         
@@ -266,7 +284,7 @@ async def chat(request: ChatRequest):
         
         else:
             # Demo response when no API key
-            ai_response = f"Merhaba! '{request.message}' mesajınızı aldım. Bu bir demo yanıttır. Gerçek AI entegrasyonu için Google AI veya OpenAI API anahtarı gerekli."
+            ai_response = f"Merhaba! '{chat_request.message}' mesajınızı aldım. Bu bir demo yanıttır. Gerçek AI entegrasyonu için Google AI veya OpenAI API anahtarı gerekli."
         
         # Save assistant message
         assistant_message = Message(
@@ -350,12 +368,24 @@ async def speech_to_text(audio_file: UploadFile = File(...)):
 # Include the router in the main app
 app.include_router(api_router)
 
+# Security middleware
+app.add_middleware(
+    TrustedHostMiddleware, 
+    allowed_hosts=["localhost", "127.0.0.1", "*.netlify.app", "*.railway.app", "nextcode.az"]
+)
+
+# Compression middleware
+app.add_middleware(GZipMiddleware, minimum_size=1000)
+
+# CORS middleware with security
+allowed_origins = os.environ.get('CORS_ORIGINS', 'http://localhost:3000,https://*.netlify.app').split(',')
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
-    allow_methods=["*"],
+    allow_origins=allowed_origins,
+    allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["*"],
+    max_age=3600,  # Cache preflight for 1 hour
 )
 
 # Configure logging

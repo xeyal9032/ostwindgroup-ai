@@ -205,7 +205,7 @@ const ChatWindow = ({ conversationId, onNewConversation, onMessagesUpdate }) => 
   }, [messages, formatTime]);
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="chatgpt-layout">
       {/* Desktop Header - Hidden on mobile */}
       <div className="hidden md:block chatgpt-header">
         <div className="flex items-center space-x-4">
