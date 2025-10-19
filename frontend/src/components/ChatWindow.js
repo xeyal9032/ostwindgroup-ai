@@ -297,46 +297,51 @@ const ChatWindow = ({ conversationId, onNewConversation, onMessagesUpdate }) => 
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Ollama Control Panel */}
-      {ollamaStatus && (
-        <div className="ollama-control-panel">
-          <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border">
-            <div className="flex items-center space-x-3">
-              <div className="flex items-center space-x-2">
-                <div className={`w-2 h-2 rounded-full ${ollamaStatus ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                <span className="text-sm font-medium">Ollama</span>
-                <span className="text-xs text-gray-500">({ollamaStatus ? 'Çalışıyor' : 'Kapalı'})</span>
-              </div>
-              
-              {availableModels.length > 0 && (
-                <select
-                  value={selectedModel}
-                  onChange={(e) => setSelectedModel(e.target.value)}
-                  className="text-xs px-2 py-1 border rounded bg-white dark:bg-gray-700"
-                >
-                  {availableModels.map((model) => (
-                    <option key={model.name} value={model.name}>
-                      {model.name} ({(model.size / 1024 / 1024 / 1024).toFixed(1)}GB)
-                    </option>
-                  ))}
-                </select>
-              )}
+      {/* AI Control Panel */}
+      <div className="ai-control-panel">
+        <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border">
+          <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2">
+              <div className={`w-2 h-2 rounded-full ${ollamaStatus ? 'bg-green-500' : 'bg-red-500'}`}></div>
+              <span className="text-sm font-medium">Ollama</span>
+              <span className="text-xs text-gray-500">({ollamaStatus ? 'Çalışıyor' : 'Kapalı'})</span>
             </div>
             
             <div className="flex items-center space-x-2">
-              <label className="flex items-center space-x-1 text-xs">
-                <input
-                  type="checkbox"
-                  checked={useOllama}
-                  onChange={(e) => setUseOllama(e.target.checked)}
-                  className="rounded"
-                />
-                <span>Ollama Kullan</span>
-              </label>
+              <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+              <span className="text-sm font-medium">Groq API</span>
+              <span className="text-xs text-gray-500">(Aktif)</span>
             </div>
+            
+            {availableModels.length > 0 && (
+              <select
+                value={selectedModel}
+                onChange={(e) => setSelectedModel(e.target.value)}
+                className="text-xs px-2 py-1 border rounded bg-white dark:bg-gray-700"
+              >
+                {availableModels.map((model) => (
+                  <option key={model.name} value={model.name}>
+                    {model.name} ({(model.size / 1024 / 1024 / 1024).toFixed(1)}GB)
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
+          
+          <div className="flex items-center space-x-2">
+            <label className="flex items-center space-x-1 text-xs">
+              <input
+                type="checkbox"
+                checked={useOllama}
+                onChange={(e) => setUseOllama(e.target.checked)}
+                className="rounded"
+                disabled={!ollamaStatus}
+              />
+              <span>Ollama Kullan</span>
+            </label>
           </div>
         </div>
-      )}
+      </div>
 
       {/* Input Area */}
       <div className="chat-input-area">
