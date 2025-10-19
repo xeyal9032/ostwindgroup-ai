@@ -97,6 +97,31 @@ exports.handler = async (event, context) => {
       // Ücretsiz AI API'leri dene (sırayla)
       const freeApis = [
         {
+          name: 'Groq',
+          url: 'https://api.groq.com/openai/v1/chat/completions',
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${process.env.GROQ_API_KEY}`
+          },
+          body: JSON.stringify({
+            model: 'llama3-8b-8192',
+            messages: [
+              {
+                role: 'system',
+                content: 'Sen OstWindGroup AI asistanısın. Ukrayna üniversiteleri konusunda uzman bir asistansın. Türkçe yanıt ver.'
+              },
+              {
+                role: 'user',
+                content: message
+              }
+            ],
+            max_tokens: 1000,
+            temperature: 0.7
+          }),
+          parseResponse: (data) => data.choices[0]?.message?.content || ''
+        },
+        {
           name: 'Hugging Face',
           url: 'https://api-inference.huggingface.co/models/microsoft/DialoGPT-medium',
           method: 'POST',
