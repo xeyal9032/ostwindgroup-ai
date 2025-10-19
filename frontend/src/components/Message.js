@@ -74,14 +74,20 @@ const Message = ({ message, time, onEdit }) => {
                   autoFocus
                 />
                 <div className="flex space-x-2">
-                  <Button size="sm" onClick={handleSave} className="text-xs md:text-sm">
-                    <Save className="w-3 h-3 mr-1" />
-                    Kaydet
-                  </Button>
-                  <Button size="sm" variant="outline" onClick={handleCancel} className="text-xs md:text-sm">
-                    <X className="w-3 h-3 mr-1" />
-                    İptal
-                  </Button>
+                  <button 
+                    onClick={handleSave} 
+                    className="px-3 py-1 bg-green-500 hover:bg-green-600 text-white text-xs rounded-lg flex items-center space-x-1 transition-colors"
+                  >
+                    <Save className="w-3 h-3" />
+                    <span>Kaydet</span>
+                  </button>
+                  <button 
+                    onClick={handleCancel} 
+                    className="px-3 py-1 bg-gray-500 hover:bg-gray-600 text-white text-xs rounded-lg flex items-center space-x-1 transition-colors"
+                  >
+                    <X className="w-3 h-3" />
+                    <span>İptal</span>
+                  </button>
                 </div>
               </CardContent>
             </Card>
@@ -105,27 +111,23 @@ const Message = ({ message, time, onEdit }) => {
                 "absolute top-1 md:top-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity flex space-x-1",
                 isUser ? "left-1 md:left-2" : "right-1 md:right-2"
               )}>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-5 w-5 md:h-6 md:w-6"
+                <button
+                  className="h-5 w-5 md:h-6 md:w-6 hover:bg-white/20 dark:hover:bg-black/20 rounded-full flex items-center justify-center transition-colors"
                   onClick={handleCopy}
                 >
                   {copied ? (
-                    <Check className="w-2 h-2 md:w-3 md:h-3" />
+                    <Check className="w-2 h-2 md:w-3 md:h-3 text-green-500" />
                   ) : (
                     <Copy className="w-2 h-2 md:w-3 md:h-3" />
                   )}
-                </Button>
+                </button>
                 {isUser && onEdit && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-5 w-5 md:h-6 md:w-6"
+                  <button
+                    className="h-5 w-5 md:h-6 md:w-6 hover:bg-white/20 dark:hover:bg-black/20 rounded-full flex items-center justify-center transition-colors"
                     onClick={handleEdit}
                   >
                     <Edit2 className="w-2 h-2 md:w-3 md:h-3" />
-                  </Button>
+                  </button>
                 )}
               </div>
             </>

@@ -6,6 +6,8 @@ import { conversationService, chatService } from '../services/api';
 import EmojiPickerButton from './EmojiPickerButton';
 import { FileUploadButton, FilePreview } from './FileUpload';
 import VoiceMessageButton from './VoiceMessageButton';
+import ThemeToggle from './ThemeToggle';
+import ThemeSelector from './ThemeSelector';
 import { useNotifications } from './NotificationBell';
 
 const ChatWindow = ({ conversationId, onNewConversation, onMessagesUpdate }) => {
@@ -163,12 +165,18 @@ const ChatWindow = ({ conversationId, onNewConversation, onMessagesUpdate }) => 
               {conversationId ? 'Size yardımcı olmaya hazırım' : 'Hemen başlayalım'}
             </p>
           </div>
-          {conversationId && (
-            <div className="flex items-center space-x-2 px-4 py-2 bg-green-100 dark:bg-green-900/30 rounded-full">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-sm text-green-600 dark:text-green-400 font-medium">Çevrimiçi</span>
+          <div className="flex items-center space-x-3">
+            {conversationId && (
+              <div className="flex items-center space-x-2 px-4 py-2 bg-green-100 dark:bg-green-900/30 rounded-full">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span className="text-sm text-green-600 dark:text-green-400 font-medium">Çevrimiçi</span>
+              </div>
+            )}
+            <div className="flex items-center space-x-1">
+              <ThemeToggle />
+              <ThemeSelector />
             </div>
-          )}
+          </div>
         </div>
       </div>
 

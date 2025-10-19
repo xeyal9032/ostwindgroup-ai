@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Input } from './ui/Input';
 import { Card, CardContent } from './ui/Card';
+import { Button } from './ui/Button';
 import { MessageSquare, Search, X, Trash2 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
@@ -57,14 +58,12 @@ const ChatList = ({
             className="pl-10 pr-8 h-10 bg-white/50 dark:bg-slate-800/50 border-white/20 dark:border-slate-700/50 rounded-xl focus:ring-2 focus:ring-purple-500/50"
           />
           {searchTerm && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute right-1 top-1/2 transform -translate-y-1/2 h-6 w-6 hover:bg-red-100 dark:hover:bg-red-900/30"
+            <button
+              className="absolute right-1 top-1/2 transform -translate-y-1/2 h-6 w-6 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-full flex items-center justify-center transition-colors"
               onClick={() => setSearchTerm('')}
             >
               <X className="w-3 h-3 text-red-500" />
-            </Button>
+            </button>
           )}
         </div>
       </div>
@@ -102,13 +101,12 @@ const ChatList = ({
             <p className="text-slate-500 dark:text-slate-400 mb-6">
               "{searchTerm}" için sohbet bulunamadı
             </p>
-            <Button
-              variant="outline"
+            <button
               onClick={() => setSearchTerm('')}
-              className="px-4 py-2 rounded-xl"
+              className="px-4 py-2 rounded-xl bg-white/50 dark:bg-slate-800/50 border border-white/20 dark:border-slate-700/50 hover:bg-white/70 dark:hover:bg-slate-800/70 transition-colors"
             >
               Aramayı temizle
-            </Button>
+            </button>
           </div>
         ) : (
           <div className="space-y-3">
@@ -145,17 +143,15 @@ const ChatList = ({
                           </div>
                         </div>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-red-100 dark:hover:bg-red-900/30"
+                      <button
+                        className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-full flex items-center justify-center"
                         onClick={(e) => {
                           e.stopPropagation();
                           onDeleteConversation(conversation.id);
                         }}
                       >
                         <Trash2 className="w-3 h-3 text-red-500" />
-                      </Button>
+                      </button>
                     </div>
                   </CardContent>
                 </Card>

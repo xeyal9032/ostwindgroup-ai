@@ -27,6 +27,13 @@ export const ThemeProvider = ({ children }) => {
     // HTML elementine tema class'ı ekle
     document.documentElement.setAttribute('data-theme', theme);
     
+    // Tailwind dark class'ını ekle/çıkar
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    
     // Sistem teması değişikliğini dinle
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     const handleChange = (e) => {

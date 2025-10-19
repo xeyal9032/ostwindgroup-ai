@@ -2,31 +2,31 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/Card';
 import { MessageSquare, Clock, User, Bot } from 'lucide-react';
 
-const ChatStats = ({ conversations, messages }) => {
+const ChatStats = ({ conversations, allMessages }) => {
   const totalConversations = conversations.length;
-  const totalMessages = messages.length;
-  const userMessages = messages.filter(msg => msg.role === 'user').length;
-  const assistantMessages = messages.filter(msg => msg.role === 'assistant').length;
+  const totalMessages = allMessages.length;
+  const userMessages = allMessages.filter(msg => msg.role === 'user').length;
+  const assistantMessages = allMessages.filter(msg => msg.role === 'assistant').length;
   
   // En aktif sohbet
   const conversationStats = conversations.map(conv => ({
     id: conv.id,
     title: conv.title,
-    messageCount: messages.filter(msg => msg.conversation_id === conv.id).length
+    messageCount: allMessages.filter(msg => msg.conversation_id === conv.id).length
   })).sort((a, b) => b.messageCount - a.messageCount);
 
   const mostActiveConversation = conversationStats[0];
 
   // Ortalama mesaj uzunluğu
-  const avgMessageLength = messages.length > 0 
-    ? Math.round(messages.reduce((sum, msg) => sum + msg.content.length, 0) / messages.length)
+  const avgMessageLength = allMessages.length > 0 
+    ? Math.round(allMessages.reduce((sum, msg) => sum + msg.content.length, 0) / allMessages.length)
     : 0;
 
   // Son 7 günün istatistikleri
   const lastWeek = new Date();
   lastWeek.setDate(lastWeek.getDate() - 7);
   
-  const recentMessages = messages.filter(msg => 
+  const recentMessages = allMessages.filter(msg => 
     new Date(msg.timestamp) >= lastWeek
   ).length;
 

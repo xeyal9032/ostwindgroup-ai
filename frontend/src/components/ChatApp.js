@@ -4,6 +4,12 @@ import ChatList from './ChatList';
 import ChatWindow from './ChatWindow';
 import MobileNavigation from './MobileNavigation';
 import Footer from './Footer';
+import ThemeToggle from './ThemeToggle';
+import ThemeSelector from './ThemeSelector';
+import ChatStats from './ChatStats';
+import AnalyticsDashboard from './AnalyticsDashboard';
+import ExportImport from './ExportImport';
+import AIGames from './AIGames';
 import { conversationService } from '../services/api';
 
 const ChatApp = () => {
@@ -100,9 +106,15 @@ const ChatApp = () => {
               <p className="text-xs text-slate-600 dark:text-slate-400">Akıllı Asistan</p>
             </div>
           </div>
-          <div className="flex items-center space-x-2 px-3 py-1 bg-green-100 dark:bg-green-900/30 rounded-full">
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-            <span className="text-xs text-green-600 dark:text-green-400 font-medium">Çevrimiçi</span>
+          <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 px-3 py-1 bg-green-100 dark:bg-green-900/30 rounded-full">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <span className="text-xs text-green-600 dark:text-green-400 font-medium">Çevrimiçi</span>
+            </div>
+            <div className="flex items-center space-x-1">
+              <ThemeToggle />
+              <ThemeSelector />
+            </div>
           </div>
         </div>
 
@@ -112,6 +124,39 @@ const ChatApp = () => {
             onNewConversation={handleNewConversation}
             onMessagesUpdate={setAllMessages}
           />
+          
+          {/* Özellik Panelleri */}
+          {showStats && (
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm z-40 flex items-center justify-center p-4">
+              <div className="bg-white dark:bg-slate-800 rounded-xl p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+                <ChatStats conversations={conversations} allMessages={allMessages} />
+              </div>
+            </div>
+          )}
+          
+          {showAnalytics && (
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm z-40 flex items-center justify-center p-4">
+              <div className="bg-white dark:bg-slate-800 rounded-xl p-6 max-w-4xl w-full max-h-[80vh] overflow-y-auto">
+                <AnalyticsDashboard conversations={conversations} messages={allMessages} />
+              </div>
+            </div>
+          )}
+          
+          {showExport && (
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm z-40 flex items-center justify-center p-4">
+              <div className="bg-white dark:bg-slate-800 rounded-xl p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+                <ExportImport conversations={conversations} currentConversationId={currentConversationId} />
+              </div>
+            </div>
+          )}
+          
+          {showGames && (
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm z-40 flex items-center justify-center p-4">
+              <div className="bg-white dark:bg-slate-800 rounded-xl p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+                <AIGames currentConversationId={currentConversationId} />
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

@@ -14,7 +14,7 @@ import {
   Filter
 } from 'lucide-react';
 
-const AnalyticsDashboard = ({ conversations, messages }) => {
+const AnalyticsDashboard = ({ conversations, messages = [] }) => {
   const [timeRange, setTimeRange] = useState('7d');
   const [filteredMessages, setFilteredMessages] = useState([]);
 

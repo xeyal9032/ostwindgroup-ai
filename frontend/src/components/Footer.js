@@ -27,6 +27,14 @@ const Footer = ({
 }) => {
   const { unreadCount } = useNotifications();
 
+  // Tüm özelliklerin görünür olması için state'leri kontrol et
+  const hasFeatures = {
+    stats: typeof onToggleStats === 'function',
+    analytics: typeof onToggleAnalytics === 'function',
+    export: typeof onToggleExport === 'function',
+    games: typeof onToggleGames === 'function'
+  };
+
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 bg-gradient-to-t from-white/95 via-white/90 to-white/80 dark:from-slate-900/95 dark:via-slate-900/90 dark:to-slate-900/80 backdrop-blur-xl border-t border-white/20 dark:border-slate-700/20 shadow-2xl">
       <div className="px-4 py-3">
@@ -43,15 +51,16 @@ const Footer = ({
         </div>
 
         {/* Alt Butonlar */}
-        <div className="flex items-center justify-center space-x-2">
+        <div className="flex items-center justify-center space-x-2 flex-wrap">
           {/* Bildirimler */}
           <Button
-            variant="ghost"
-            size="icon"
-            className="h-10 w-10 hover:bg-purple-100 dark:hover:bg-purple-900/30 relative"
+            variant="outline"
+            size="sm"
+            className="h-10 px-3 hover:bg-purple-100 dark:hover:bg-purple-900/30 relative border-purple-200 dark:border-purple-800"
             title="Bildirimler"
           >
-            <Bell className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+            <Bell className="w-4 h-4 text-purple-600 dark:text-purple-400 mr-2" />
+            <span className="text-xs">Bildirimler</span>
             {unreadCount > 0 && (
               <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
                 {unreadCount > 9 ? '9+' : unreadCount}
@@ -60,67 +69,81 @@ const Footer = ({
           </Button>
 
           {/* İstatistikler */}
-          <Button
-            variant={showStats ? "default" : "ghost"}
-            size="icon"
-            onClick={onToggleStats}
-            className="h-10 w-10 hover:bg-blue-100 dark:hover:bg-blue-900/30"
-            title="İstatistikler"
-          >
-            <BarChart3 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-          </Button>
+          {hasFeatures.stats && (
+            <Button
+              variant={showStats ? "default" : "outline"}
+              size="sm"
+              onClick={onToggleStats}
+              className="h-10 px-3 hover:bg-blue-100 dark:hover:bg-blue-900/30 border-blue-200 dark:border-blue-800"
+              title="İstatistikler"
+            >
+              <BarChart3 className="w-4 h-4 text-blue-600 dark:text-blue-400 mr-2" />
+              <span className="text-xs">İstatistikler</span>
+            </Button>
+          )}
 
           {/* Analitik */}
-          <Button
-            variant={showAnalytics ? "default" : "ghost"}
-            size="icon"
-            onClick={onToggleAnalytics}
-            className="h-10 w-10 hover:bg-green-100 dark:hover:bg-green-900/30"
-            title="Analitik Dashboard"
-          >
-            <Activity className="w-5 h-5 text-green-600 dark:text-green-400" />
-          </Button>
+          {hasFeatures.analytics && (
+            <Button
+              variant={showAnalytics ? "default" : "outline"}
+              size="sm"
+              onClick={onToggleAnalytics}
+              className="h-10 px-3 hover:bg-green-100 dark:hover:bg-green-900/30 border-green-200 dark:border-green-800"
+              title="Analitik Dashboard"
+            >
+              <Activity className="w-4 h-4 text-green-600 dark:text-green-400 mr-2" />
+              <span className="text-xs">Analitik</span>
+            </Button>
+          )}
 
           {/* Export/Import */}
-          <Button
-            variant={showExport ? "default" : "ghost"}
-            size="icon"
-            onClick={onToggleExport}
-            className="h-10 w-10 hover:bg-orange-100 dark:hover:bg-orange-900/30"
-            title="Export/Import"
-          >
-            <Download className="w-5 h-5 text-orange-600 dark:text-orange-400" />
-          </Button>
+          {hasFeatures.export && (
+            <Button
+              variant={showExport ? "default" : "outline"}
+              size="sm"
+              onClick={onToggleExport}
+              className="h-10 px-3 hover:bg-orange-100 dark:hover:bg-orange-900/30 border-orange-200 dark:border-orange-800"
+              title="Export/Import"
+            >
+              <Download className="w-4 h-4 text-orange-600 dark:text-orange-400 mr-2" />
+              <span className="text-xs">Export</span>
+            </Button>
+          )}
 
           {/* AI Oyunları */}
-          <Button
-            variant={showGames ? "default" : "ghost"}
-            size="icon"
-            onClick={onToggleGames}
-            className="h-10 w-10 hover:bg-pink-100 dark:hover:bg-pink-900/30"
-            title="AI Oyunları"
-          >
-            <Gamepad2 className="w-5 h-5 text-pink-600 dark:text-pink-400" />
-          </Button>
+          {hasFeatures.games && (
+            <Button
+              variant={showGames ? "default" : "outline"}
+              size="sm"
+              onClick={onToggleGames}
+              className="h-10 px-3 hover:bg-pink-100 dark:hover:bg-pink-900/30 border-pink-200 dark:border-pink-800"
+              title="AI Oyunları"
+            >
+              <Gamepad2 className="w-4 h-4 text-pink-600 dark:text-pink-400 mr-2" />
+              <span className="text-xs">Oyunlar</span>
+            </Button>
+          )}
 
           {/* Yardım */}
           <Button
-            variant="ghost"
-            size="icon"
-            className="h-10 w-10 hover:bg-yellow-100 dark:hover:bg-yellow-900/30"
+            variant="outline"
+            size="sm"
+            className="h-10 px-3 hover:bg-yellow-100 dark:hover:bg-yellow-900/30 border-yellow-200 dark:border-yellow-800"
             title="Yardım"
           >
-            <HelpCircle className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
+            <HelpCircle className="w-4 h-4 text-yellow-600 dark:text-yellow-400 mr-2" />
+            <span className="text-xs">Yardım</span>
           </Button>
 
           {/* Ayarlar */}
           <Button
-            variant="ghost"
-            size="icon"
-            className="h-10 w-10 hover:bg-gray-100 dark:hover:bg-gray-900/30"
+            variant="outline"
+            size="sm"
+            className="h-10 px-3 hover:bg-gray-100 dark:hover:bg-gray-900/30 border-gray-200 dark:border-gray-800"
             title="Ayarlar"
           >
-            <Settings className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+            <Settings className="w-4 h-4 text-gray-600 dark:text-gray-400 mr-2" />
+            <span className="text-xs">Ayarlar</span>
           </Button>
         </div>
 
@@ -136,3 +159,6 @@ const Footer = ({
 };
 
 export default Footer;
+
+
+
