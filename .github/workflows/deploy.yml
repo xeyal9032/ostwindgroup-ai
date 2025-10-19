@@ -22,14 +22,12 @@ jobs:
         cache-dependency-path: 'app/frontend/package-lock.json'
         
     - name: Install dependencies
-      run: |
-        cd app/frontend
-        npm ci
+      working-directory: app/frontend
+      run: npm ci
         
     - name: Build
-      run: |
-        cd app/frontend
-        npm run build
+      working-directory: app/frontend
+      run: npm run build
         
     - name: Deploy to GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
