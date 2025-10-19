@@ -1,7 +1,7 @@
 [build]
-  publish = "build"
-  command = "npm install && npm run build"
-  functions = "netlify/functions"
+  publish = "frontend/build"
+  command = "cd frontend && npm install && npm run build"
+  functions = "frontend/netlify/functions"
 
 [build.environment]
   NODE_VERSION = "18"
@@ -16,7 +16,7 @@
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
     Permissions-Policy = "camera=(), microphone=(), geolocation=()"
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.railway.app https://*.netlify.app /.netlify/functions;"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.railway.app https://*.netlify.app /.netlify/functions http://localhost:11434;"
 
 # Cache optimization
 [[headers]]

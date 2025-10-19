@@ -144,6 +144,11 @@ export const ollamaService = {
     console.log('🤖 OllamaService - sendMessage called:', { message, model });
     
     try {
+      // CSP uyumlu kontrol - sadece development'ta çalışır
+      if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+        throw new Error('Ollama sadece localhost\'ta kullanılabilir');
+      }
+
       const response = await fetch('http://localhost:11434/api/generate', {
         method: 'POST',
         headers: {
@@ -184,6 +189,11 @@ export const ollamaService = {
   // Mevcut modelleri listele
   listModels: async () => {
     try {
+      // CSP uyumlu kontrol - sadece development'ta çalışır
+      if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+        return [];
+      }
+
       const response = await fetch('http://localhost:11434/api/tags');
       const data = await response.json();
       return data.models || [];
@@ -196,9 +206,14 @@ export const ollamaService = {
   // Ollama durumunu kontrol et
   checkStatus: async () => {
     try {
-      const response = await fetch('http://localhost:11434/api/tags');
-      return response.ok;
+      // CSP uyumlu kontrol - sadece development'ta çalışır
+      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        const response = await fetch('http://localhost:11434/api/tags');
+        return response.ok;
+      }
+      return false; // Production'da Ollama kullanılamaz
     } catch (error) {
+      console.log('Ollama kontrol edilemedi (normal):', error.message);
       return false;
     }
   }
