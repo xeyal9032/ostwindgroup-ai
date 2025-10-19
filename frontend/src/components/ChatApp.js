@@ -3,7 +3,6 @@ import { useParams } from 'react-router-dom';
 import ChatList from './ChatList';
 import ChatWindow from './ChatWindow';
 import MobileNavigation from './MobileNavigation';
-import Footer from './Footer';
 import ThemeToggle from './ThemeToggle';
 import ThemeSelector from './ThemeSelector';
 import ChatStats from './ChatStats';
@@ -160,18 +159,6 @@ const ChatApp = () => {
         </div>
       </div>
 
-      {/* Footer */}
-      <Footer
-        onNewConversation={handleNewConversation}
-        onToggleStats={() => setShowStats(!showStats)}
-        onToggleAnalytics={() => setShowAnalytics(!showAnalytics)}
-        onToggleExport={() => setShowExport(!showExport)}
-        onToggleGames={() => setShowGames(!showGames)}
-        showStats={showStats}
-        showAnalytics={showAnalytics}
-        showExport={showExport}
-        showGames={showGames}
-      />
     </div>
   );
 };
