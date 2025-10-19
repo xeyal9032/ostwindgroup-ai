@@ -73,19 +73,20 @@ exports.handler = async (event, context) => {
             'Authorization': `Bearer ${process.env.GROQ_API_KEY}`
           },
           body: JSON.stringify({
-            model: 'llama3-8b-8192',
+            model: 'llama3-70b-8192',
             messages: [
               {
                 role: 'system',
-                content: 'Sen OstWindGroup AI asistanısın. Ukrayna üniversiteleri konusunda uzman bir asistansın. Türkçe yanıt ver.'
+                content: 'Sen OstWindGroup AI asistanısın. Kullanıcıya yardımcı olan, detaylı ve faydalı yanıtlar veren bir asistansın. Türkçe yanıt ver. Kullanıcının önceki mesajlarını dikkate al ve konuşma bağlamını koru.'
               },
               {
                 role: 'user',
                 content: message
               }
             ],
-            max_tokens: 1000,
-            temperature: 0.7
+            max_tokens: 1500,
+            temperature: 0.8,
+            stream: false
           }),
           parseResponse: (data) => data.choices[0]?.message?.content || ''
         },
