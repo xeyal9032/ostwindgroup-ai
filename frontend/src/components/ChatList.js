@@ -33,7 +33,7 @@ const ChatList = ({
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="chatgpt-sidebar-header">
+      <div className="sidebar-header">
         <div className="flex items-center space-x-3 mb-4">
           <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center">
             <span className="text-white font-bold text-sm">AI</span>
@@ -47,7 +47,7 @@ const ChatList = ({
         </div>
         
         {/* New Chat Button */}
-        <button className="chatgpt-new-chat">
+        <button className="modern-button-primary w-full">
           <MessageSquare className="w-4 h-4 mr-2" />
           Yeni Sohbet Başlat
         </button>
@@ -73,7 +73,7 @@ const ChatList = ({
       </div>
 
       {/* Conversations List */}
-      <div className="chatgpt-conversations">
+      <div className="sidebar-content">
         {conversations.length === 0 ? (
           <div className="chatgpt-empty-state">
             <div className="chatgpt-empty-icon">
@@ -115,19 +115,19 @@ const ChatList = ({
         ) : (
           <div className="space-y-1">
             {filteredConversations.map((conversation) => (
-              <div
-                key={conversation.id}
-                className={`chatgpt-conversation-item ${
-                  currentConversationId === conversation.id ? 'active' : ''
-                }`}
+                  <div
+                    key={conversation.id}
+                    className={`p-3 rounded-lg cursor-pointer transition-all duration-200 hover:bg-accent hover:text-accent-foreground ${
+                      currentConversationId === conversation.id ? 'bg-primary text-primary-foreground' : 'bg-card'
+                    }`}
                 onClick={() => onSelectConversation(conversation.id)}
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1 min-w-0">
-                    <h3 className="chatgpt-conversation-title">
+                    <h3 className="conversation-title">
                       {conversation.title}
                     </h3>
-                    <p className="chatgpt-conversation-date">
+                    <p className="conversation-date">
                       {formatDate(conversation.created_at)}
                     </p>
                   </div>

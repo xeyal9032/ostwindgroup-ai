@@ -2,13 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import ChatList from './ChatList';
 import ChatWindow from './ChatWindow';
-import MobileNavigation from './MobileNavigation';
 import ThemeToggle from './ThemeToggle';
-import ThemeSelector from './ThemeSelector';
-import ChatStats from './ChatStats';
-import AnalyticsDashboard from './AnalyticsDashboard';
-import ExportImport from './ExportImport';
-import AIGames from './AIGames';
 import { conversationService } from '../services/api';
 
 const ChatApp = () => {
@@ -17,10 +11,6 @@ const ChatApp = () => {
   const [currentConversationId, setCurrentConversationId] = useState(conversationId || null);
   const [loading, setLoading] = useState(true);
   const [allMessages, setAllMessages] = useState([]);
-  const [showStats, setShowStats] = useState(false);
-  const [showAnalytics, setShowAnalytics] = useState(false);
-  const [showExport, setShowExport] = useState(false);
-  const [showGames, setShowGames] = useState(false);
 
   useEffect(() => {
     loadConversations();
@@ -46,7 +36,6 @@ const ChatApp = () => {
       const newConversation = await conversationService.createConversation();
       setConversations(prev => [newConversation, ...prev]);
       setCurrentConversationId(newConversation.id);
-      // Reload conversations to get updated list
       await loadConversations();
     } catch (error) {
       console.error('Yeni sohbet oluşturulurken hata:', error);
@@ -78,9 +67,9 @@ const ChatApp = () => {
   }
 
   return (
-    <div className="chatgpt-layout">
+    <div className="flex h-screen bg-background">
       {/* Desktop Sidebar */}
-      <div className="hidden md:flex chatgpt-sidebar">
+      <div className="hidden md:flex sidebar">
         <ChatList
           conversations={conversations}
           currentConversationId={currentConversationId}
@@ -91,9 +80,9 @@ const ChatApp = () => {
       </div>
 
       {/* Main Chat Area */}
-      <div className="chatgpt-main">
+      <div className="main-content">
         {/* Mobile Header */}
-        <div className="md:hidden chatgpt-header">
+        <div className="md:hidden chat-header">
           <div className="flex items-center space-x-3">
             <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-sm">AI</span>
@@ -110,10 +99,7 @@ const ChatApp = () => {
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
               <span className="text-xs text-green-600 dark:text-green-400 font-medium">Çevrimiçi</span>
             </div>
-            <div className="flex items-center space-x-1">
-              <ThemeToggle />
-              <ThemeSelector />
-            </div>
+            <ThemeToggle />
           </div>
         </div>
 
@@ -123,42 +109,8 @@ const ChatApp = () => {
             onNewConversation={handleNewConversation}
             onMessagesUpdate={setAllMessages}
           />
-          
-          {/* Özellik Panelleri */}
-          {showStats && (
-            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm z-40 flex items-center justify-center p-4">
-              <div className="bg-white dark:bg-gray-900 rounded-xl p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
-                <ChatStats conversations={conversations} allMessages={allMessages} />
-              </div>
-            </div>
-          )}
-          
-          {showAnalytics && (
-            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm z-40 flex items-center justify-center p-4">
-              <div className="bg-white dark:bg-gray-900 rounded-xl p-6 max-w-4xl w-full max-h-[80vh] overflow-y-auto">
-                <AnalyticsDashboard conversations={conversations} messages={allMessages} />
-              </div>
-            </div>
-          )}
-          
-          {showExport && (
-            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm z-40 flex items-center justify-center p-4">
-              <div className="bg-white dark:bg-gray-900 rounded-xl p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
-                <ExportImport conversations={conversations} currentConversationId={currentConversationId} />
-              </div>
-            </div>
-          )}
-          
-          {showGames && (
-            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm z-40 flex items-center justify-center p-4">
-              <div className="bg-white dark:bg-gray-900 rounded-xl p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
-                <AIGames currentConversationId={currentConversationId} />
-              </div>
-            </div>
-          )}
         </div>
       </div>
-
     </div>
   );
 };

@@ -35,12 +35,10 @@ const Message = ({ message, time, onEdit }) => {
   };
 
   return (
-    <div className={`flex gap-3 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
+    <div className={`flex items-start space-x-3 ${isUser ? 'flex-row-reverse space-x-reverse' : ''}`}>
       {/* Avatar */}
       <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-        isUser 
-          ? 'bg-green-500 text-white' 
-          : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
+        isUser ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
       }`}>
         {isUser ? (
           <User className="w-4 h-4" />
@@ -50,42 +48,38 @@ const Message = ({ message, time, onEdit }) => {
       </div>
 
       {/* Message Content */}
-      <div className={`flex-1 min-w-0 ${isUser ? 'flex flex-col items-end' : 'flex flex-col items-start'}`}>
+      <div className={`flex-1 min-w-0 ${isUser ? 'text-right' : 'text-left'}`}>
         <div className="group relative">
           {isEditing ? (
-            <div className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-xl p-4 max-w-md">
+            <div className="message-bubble bg-card border border-border">
               <textarea
                 value={editContent}
                 onChange={(e) => setEditContent(e.target.value)}
-                className="w-full mb-3 text-sm bg-transparent border-none outline-none resize-none text-gray-900 dark:text-white"
+                className="w-full mb-3 text-sm bg-transparent border-none outline-none resize-none text-foreground"
                 rows={3}
                 autoFocus
               />
               <div className="flex space-x-2">
                 <button 
                   onClick={handleSave} 
-                  className="px-3 py-1 bg-green-500 hover:bg-green-600 text-white text-xs rounded-lg flex items-center space-x-1 transition-colors"
+                  className="modern-button-primary text-xs px-3 py-1"
                 >
-                  <Save className="w-3 h-3" />
-                  <span>Kaydet</span>
+                  <Save className="w-3 h-3 mr-1" />
+                  Kaydet
                 </button>
                 <button 
                   onClick={handleCancel} 
-                  className="px-3 py-1 bg-gray-500 hover:bg-gray-600 text-white text-xs rounded-lg flex items-center space-x-1 transition-colors"
+                  className="modern-button-secondary text-xs px-3 py-1"
                 >
-                  <X className="w-3 h-3" />
-                  <span>İptal</span>
+                  <X className="w-3 h-3 mr-1" />
+                  İptal
                 </button>
               </div>
             </div>
           ) : (
             <>
-              <div className={`px-4 py-3 rounded-xl max-w-md ${
-                isUser 
-                  ? 'bg-green-500 text-white rounded-br-sm' 
-                  : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white rounded-bl-sm'
-              }`}>
-                <div className="text-sm whitespace-pre-wrap break-words">
+              <div className={`message-bubble ${isUser ? 'message-user' : 'message-assistant'}`}>
+                <div className="text-sm leading-relaxed whitespace-pre-wrap">
                   {message.content}
                 </div>
               </div>
@@ -96,7 +90,7 @@ const Message = ({ message, time, onEdit }) => {
               }`}>
                 <button 
                   onClick={handleCopy} 
-                  className="w-6 h-6 hover:bg-black/10 dark:hover:bg-white/10 rounded-full flex items-center justify-center transition-colors"
+                  className="action-button"
                 >
                   {copied ? (
                     <Check className="w-3 h-3 text-green-500" />
@@ -107,7 +101,7 @@ const Message = ({ message, time, onEdit }) => {
                 {isUser && onEdit && (
                   <button 
                     onClick={handleEdit} 
-                    className="w-6 h-6 hover:bg-black/10 dark:hover:bg-white/10 rounded-full flex items-center justify-center transition-colors"
+                    className="action-button"
                   >
                     <Edit2 className="w-3 h-3" />
                   </button>
@@ -118,9 +112,7 @@ const Message = ({ message, time, onEdit }) => {
         </div>
 
         {/* Time */}
-        <div className={`text-xs text-gray-500 dark:text-gray-400 mt-1 ${
-          isUser ? 'text-right' : 'text-left'
-        }`}>
+        <div className={`text-xs text-muted-foreground mt-1 ${isUser ? 'text-right' : 'text-left'}`}>
           {time}
         </div>
       </div>

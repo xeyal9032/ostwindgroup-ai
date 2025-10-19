@@ -1,73 +1,54 @@
 import axios from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL || '/.netlify/functions';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 30000, // 30 saniye timeout
+  timeout: 30000,
 });
 
-// Request interceptor for error handling
+// Request interceptor for debugging
 api.interceptors.request.use(
   (config) => {
-    console.log(`API Request: ${config.method?.toUpperCase()} ${config.url}`);
+    console.log('🚀 API Request:', config.method?.toUpperCase(), config.url);
+    console.log('📦 Request data:', config.data);
     return config;
   },
   (error) => {
-    console.error('Request error:', error);
+    console.error('❌ Request error:', error);
     return Promise.reject(error);
   }
 );
 
-// Response interceptor for error handling
+// Response interceptor for debugging
 api.interceptors.response.use(
   (response) => {
-    console.log(`API Response: ${response.status} ${response.config.url}`);
+    console.log('✅ API Response:', response.status, response.config.url);
+    console.log('📦 Response data:', response.data);
     return response;
   },
   (error) => {
-    console.error('Response error:', error);
-    
-    if (error.response) {
-      // Server responded with error status
-      const { status, data } = error.response;
-      console.error(`Server error ${status}:`, data);
-      
-      if (status === 401) {
-        // Unauthorized - redirect to login or show auth error
-        console.error('Unauthorized access');
-      } else if (status === 429) {
-        // Rate limited
-        console.error('Rate limited - too many requests');
-      } else if (status >= 500) {
-        // Server error
-        console.error('Server error');
-      }
-    } else if (error.request) {
-      // Network error
-      console.error('Network error - no response received');
-    } else {
-      // Other error
-      console.error('Request setup error:', error.message);
-    }
-    
+    console.error('❌ Response error:', error);
+    console.error('❌ Error details:', {
+      message: error.message,
+      status: error.response?.status,
+      data: error.response?.data,
+      config: error.config
+    });
     return Promise.reject(error);
   }
 );
 
-// API servisleri
 export const conversationService = {
-  // Tüm sohbetleri getir
   getConversations: async () => {
     try {
       const response = await api.get('/conversations');
       return response.data;
     } catch (error) {
       console.error('Sohbetler alınamadı:', error);
-      // Mock data döndür
       return [
         {
           id: 'conv-1',
@@ -79,31 +60,12 @@ export const conversationService = {
     }
   },
 
-  // Tek sohbet getir
-  getConversation: async (conversationId) => {
-    try {
-      const response = await api.get(`/conversations/${conversationId}`);
-      return response.data;
-    } catch (error) {
-      console.error('Sohbet alınamadı:', error);
-      // Mock data döndür
-      return {
-        id: conversationId,
-        title: 'Yeni Sohbet',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
-    }
-  },
-
-  // Yeni sohbet oluştur
   createConversation: async (title = 'Yeni Sohbet') => {
     try {
       const response = await api.post('/conversations', { title });
       return response.data;
     } catch (error) {
       console.error('Sohbet oluşturulamadı:', error);
-      // Mock data döndür
       return {
         id: 'conv-' + Date.now(),
         title: title,
@@ -113,53 +75,31 @@ export const conversationService = {
     }
   },
 
-  // Sohbet sil
-  deleteConversation: async (conversationId) => {
+  deleteConversation: async (id) => {
     try {
-      const response = await api.delete(`/conversations/${conversationId}`);
-      return response.data;
+      await api.delete(`/conversations/${id}`);
+      return { success: true };
     } catch (error) {
       console.error('Sohbet silinemedi:', error);
       return { success: true };
     }
   },
 
-  // Sohbet mesajlarını getir
   getMessages: async (conversationId) => {
     try {
-      const response = await api.get(`/conversations/${conversationId}/messages`);
+      const response = await api.get(`/messages?conversationId=${conversationId}`);
       return response.data;
     } catch (error) {
       console.error('Mesajlar alınamadı:', error);
-      // Local storage'dan mesajları al
-      const localMessages = JSON.parse(localStorage.getItem('messages') || '{}');
-      return localMessages[conversationId] || [];
-    }
-  },
-
-  // Mesaj kaydet
-  saveMessage: async (messageData) => {
-    try {
-      const response = await api.post('/messages', messageData);
-      return response.data;
-    } catch (error) {
-      console.error('Mesaj kaydedilemedi:', error);
-      // Local storage'a kaydet
-      const localMessages = JSON.parse(localStorage.getItem('messages') || '{}');
-      if (!localMessages[messageData.conversation_id]) {
-        localMessages[messageData.conversation_id] = [];
-      }
-      localMessages[messageData.conversation_id].push(messageData);
-      localStorage.setItem('messages', JSON.stringify(localMessages));
-      return messageData;
+      return [];
     }
   },
 };
 
 export const chatService = {
-  // AI ile sohbet et - Backend üzerinden güvenli
   sendMessage: async (conversationId, message) => {
-    console.log('API call - sendMessage:', { conversationId, message });
+    console.log('🎯 ChatService - sendMessage called:', { conversationId, message });
+    console.log('🌐 API Base URL:', API_BASE_URL);
     
     try {
       const response = await api.post('/chat', {
@@ -167,43 +107,33 @@ export const chatService = {
         message: message
       });
       
-      console.log('API response:', response.data);
-      return response.data;
+      console.log('✅ ChatService - API response received:', response.data);
+      console.log('📦 Response message content:', response.data.message);
+      
+      return {
+        conversation_id: response.data.conversation_id,
+        message: response.data.message,
+        timestamp: response.data.timestamp
+      };
     } catch (error) {
-      console.error('Chat service error:', error);
-      
-      // Fallback error message
-      if (error.code === 'ECONNABORTED') {
-        throw new Error('İstek zaman aşımına uğradı. Lütfen tekrar deneyin.');
-      } else if (error.response?.status === 429) {
-        throw new Error('Çok fazla istek gönderildi. Lütfen biraz bekleyin.');
-      } else if (error.response?.status >= 500) {
-        throw new Error('Sunucu hatası. Lütfen daha sonra tekrar deneyin.');
-      } else if (!error.response) {
-        throw new Error('Backend sunucusu çalışmıyor. Lütfen daha sonra tekrar deneyin.');
-      } else {
-        throw new Error(error.response?.data?.detail || 'Bilinmeyen bir hata oluştu.');
-      }
-    }
-  },
-
-  // Speech-to-text servisi
-  speechToText: async (audioFile) => {
-    try {
-      const formData = new FormData();
-      formData.append('audio_file', audioFile);
-      
-      const response = await api.post('/speech-to-text', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-        timeout: 60000, // 60 saniye timeout for audio processing
+      console.error('❌ ChatService - API error:', error);
+      console.error('❌ ChatService - Error details:', {
+        message: error.message,
+        status: error.response?.status,
+        data: error.response?.data,
+        config: error.config
       });
       
-      return response.data;
-    } catch (error) {
-      console.error('Speech-to-text error:', error);
-      throw new Error('Ses-metin çevirisi başarısız oldu. Lütfen tekrar deneyin.');
+      // Daha detaylı hata mesajı
+      if (error.response?.status === 500) {
+        throw new Error('Sunucu hatası. Lütfen daha sonra tekrar deneyin.');
+      } else if (error.response?.status === 404) {
+        throw new Error('API endpoint bulunamadı.');
+      } else if (error.code === 'ECONNABORTED') {
+        throw new Error('İstek zaman aşımına uğradı. Lütfen tekrar deneyin.');
+      } else {
+        throw new Error(`Mesaj gönderilemedi: ${error.message}`);
+      }
     }
   },
 };
