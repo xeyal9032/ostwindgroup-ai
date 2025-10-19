@@ -180,7 +180,7 @@ export const chatService = {
       } else if (error.response?.status >= 500) {
         throw new Error('Sunucu hatası. Lütfen daha sonra tekrar deneyin.');
       } else if (!error.response) {
-        throw new Error('Bağlantı hatası. İnternet bağlantınızı kontrol edin.');
+        throw new Error('Backend sunucusu çalışmıyor. Lütfen daha sonra tekrar deneyin.');
       } else {
         throw new Error(error.response?.data?.detail || 'Bilinmeyen bir hata oluştu.');
       }

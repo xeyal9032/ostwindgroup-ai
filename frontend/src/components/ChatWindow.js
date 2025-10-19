@@ -119,7 +119,17 @@ const ChatWindow = ({ conversationId, onNewConversation, onMessagesUpdate }) => 
       const errorInfo = handleError(error, 'sendMessage');
       setError(errorInfo);
       showErrorNotification(error, showNotification);
-      setMessages(prev => prev.filter(msg => msg.id !== userMessage.id));
+      
+      // Demo mesajı ekle backend çalışmadığında
+      const demoMessage = {
+        id: (Date.now() + 1).toString(),
+        conversation_id: conversationId || 'demo',
+        role: 'assistant',
+        content: `Merhaba! "${inputMessage.trim()}" mesajınızı aldım. Bu bir demo yanıttır. Backend sunucusu çalışmadığı için gerçek AI yanıtı veremiyorum. Lütfen backend sunucusunu başlatın.`,
+        timestamp: new Date().toISOString()
+      };
+      
+      setMessages(prev => [...prev, demoMessage]);
       setRetryCount(prev => prev + 1);
     } finally {
       setIsLoading(false);
