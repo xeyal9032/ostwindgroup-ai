@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { GoogleGenerativeAI } from '@google/generative-ai';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
 
@@ -8,29 +7,56 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 30000, // 30 saniye timeout
 });
 
-// Direct Gemini AI integration for frontend
-const getGeminiResponse = async (message) => {
-  try {
-    const apiKey = process.env.REACT_APP_GOOGLE_AI_API_KEY;
-    if (!apiKey) {
-      throw new Error('Google AI API key not found');
+// Request interceptor for error handling
+api.interceptors.request.use(
+  (config) => {
+    console.log(`API Request: ${config.method?.toUpperCase()} ${config.url}`);
+    return config;
+  },
+  (error) => {
+    console.error('Request error:', error);
+    return Promise.reject(error);
+  }
+);
+
+// Response interceptor for error handling
+api.interceptors.response.use(
+  (response) => {
+    console.log(`API Response: ${response.status} ${response.config.url}`);
+    return response;
+  },
+  (error) => {
+    console.error('Response error:', error);
+    
+    if (error.response) {
+      // Server responded with error status
+      const { status, data } = error.response;
+      console.error(`Server error ${status}:`, data);
+      
+      if (status === 401) {
+        // Unauthorized - redirect to login or show auth error
+        console.error('Unauthorized access');
+      } else if (status === 429) {
+        // Rate limited
+        console.error('Rate limited - too many requests');
+      } else if (status >= 500) {
+        // Server error
+        console.error('Server error');
+      }
+    } else if (error.request) {
+      // Network error
+      console.error('Network error - no response received');
+    } else {
+      // Other error
+      console.error('Request setup error:', error.message);
     }
     
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-    
-    const prompt = `Sen OstWindGroup AI, kullanıcılara yardımcı olan zeki bir asistansın. Her zaman Türkçe konuş ve yardımcı ol. Kullanıcı mesajı: "${message}"`;
-    
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    return response.text();
-  } catch (error) {
-    console.error('Gemini AI error:', error);
-    return `Üzgünüm, AI servisinde bir hata oluştu: ${error.message}. Lütfen tekrar deneyin.`;
+    return Promise.reject(error);
   }
-};
+);
 
 // API servisleri
 export const conversationService = {
@@ -131,37 +157,53 @@ export const conversationService = {
 };
 
 export const chatService = {
-  // AI ile sohbet et
+  // AI ile sohbet et - Backend üzerinden güvenli
   sendMessage: async (conversationId, message) => {
     console.log('API call - sendMessage:', { conversationId, message });
     
     try {
-      // Direct Gemini AI call
-      const aiResponse = await getGeminiResponse(message);
+      const response = await api.post('/chat', {
+        conversation_id: conversationId,
+        message: message
+      });
       
-      const response = {
-        conversation_id: conversationId || 'conv-' + Date.now(),
-        user_message: {
-          id: 'user-' + Date.now(),
-          conversation_id: conversationId || 'conv-' + Date.now(),
-          role: 'user',
-          content: message,
-          timestamp: new Date().toISOString(),
-        },
-        assistant_message: {
-          id: 'assistant-' + Date.now(),
-          conversation_id: conversationId || 'conv-' + Date.now(),
-          role: 'assistant',
-          content: aiResponse,
-          timestamp: new Date().toISOString(),
-        },
-      };
-      
-      console.log('API response:', response);
-      return response;
+      console.log('API response:', response.data);
+      return response.data;
     } catch (error) {
       console.error('Chat service error:', error);
-      throw error;
+      
+      // Fallback error message
+      if (error.code === 'ECONNABORTED') {
+        throw new Error('İstek zaman aşımına uğradı. Lütfen tekrar deneyin.');
+      } else if (error.response?.status === 429) {
+        throw new Error('Çok fazla istek gönderildi. Lütfen biraz bekleyin.');
+      } else if (error.response?.status >= 500) {
+        throw new Error('Sunucu hatası. Lütfen daha sonra tekrar deneyin.');
+      } else if (!error.response) {
+        throw new Error('Bağlantı hatası. İnternet bağlantınızı kontrol edin.');
+      } else {
+        throw new Error(error.response?.data?.detail || 'Bilinmeyen bir hata oluştu.');
+      }
+    }
+  },
+
+  // Speech-to-text servisi
+  speechToText: async (audioFile) => {
+    try {
+      const formData = new FormData();
+      formData.append('audio_file', audioFile);
+      
+      const response = await api.post('/speech-to-text', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        timeout: 60000, // 60 saniye timeout for audio processing
+      });
+      
+      return response.data;
+    } catch (error) {
+      console.error('Speech-to-text error:', error);
+      throw new Error('Ses-metin çevirisi başarısız oldu. Lütfen tekrar deneyin.');
     }
   },
 };

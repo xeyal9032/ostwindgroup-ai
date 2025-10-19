@@ -79,9 +79,9 @@ const ChatApp = () => {
   }
 
   return (
-    <div className="flex h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 overflow-hidden">
+    <div className="chatgpt-layout">
       {/* Desktop Sidebar */}
-      <div className="hidden md:block w-80 glass-card border-r border-white/20 animate-slide-in-left">
+      <div className="hidden md:flex chatgpt-sidebar">
         <ChatList
           conversations={conversations}
           currentConversationId={currentConversationId}
@@ -92,18 +92,18 @@ const ChatApp = () => {
       </div>
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col relative">
+      <div className="chatgpt-main">
         {/* Mobile Header */}
-        <div className="md:hidden flex items-center justify-between p-4 glass-card border-b border-white/20 animate-fade-in-up">
+        <div className="md:hidden chatgpt-header">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center shadow-glow animate-float">
-              <span className="text-white font-bold text-lg">AI</span>
+            <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-sm">AI</span>
             </div>
             <div>
-              <h1 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+              <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
                 OstWindGroup AI
               </h1>
-              <p className="text-xs text-slate-600 dark:text-slate-400">Akıllı Asistan</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Akıllı Asistan</p>
             </div>
           </div>
           <div className="flex items-center space-x-2">
@@ -118,7 +118,7 @@ const ChatApp = () => {
           </div>
         </div>
 
-        <div className="flex-1 flex flex-col md:pb-0 pb-32 footer-padding">
+        <div className="flex-1 flex flex-col">
           <ChatWindow
             conversationId={currentConversationId}
             onNewConversation={handleNewConversation}
@@ -128,7 +128,7 @@ const ChatApp = () => {
           {/* Özellik Panelleri */}
           {showStats && (
             <div className="absolute inset-0 bg-black/50 backdrop-blur-sm z-40 flex items-center justify-center p-4">
-              <div className="bg-white dark:bg-slate-800 rounded-xl p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+              <div className="bg-white dark:bg-gray-900 rounded-xl p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
                 <ChatStats conversations={conversations} allMessages={allMessages} />
               </div>
             </div>
@@ -136,7 +136,7 @@ const ChatApp = () => {
           
           {showAnalytics && (
             <div className="absolute inset-0 bg-black/50 backdrop-blur-sm z-40 flex items-center justify-center p-4">
-              <div className="bg-white dark:bg-slate-800 rounded-xl p-6 max-w-4xl w-full max-h-[80vh] overflow-y-auto">
+              <div className="bg-white dark:bg-gray-900 rounded-xl p-6 max-w-4xl w-full max-h-[80vh] overflow-y-auto">
                 <AnalyticsDashboard conversations={conversations} messages={allMessages} />
               </div>
             </div>
@@ -144,7 +144,7 @@ const ChatApp = () => {
           
           {showExport && (
             <div className="absolute inset-0 bg-black/50 backdrop-blur-sm z-40 flex items-center justify-center p-4">
-              <div className="bg-white dark:bg-slate-800 rounded-xl p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+              <div className="bg-white dark:bg-gray-900 rounded-xl p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
                 <ExportImport conversations={conversations} currentConversationId={currentConversationId} />
               </div>
             </div>
@@ -152,7 +152,7 @@ const ChatApp = () => {
           
           {showGames && (
             <div className="absolute inset-0 bg-black/50 backdrop-blur-sm z-40 flex items-center justify-center p-4">
-              <div className="bg-white dark:bg-slate-800 rounded-xl p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+              <div className="bg-white dark:bg-gray-900 rounded-xl p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
                 <AIGames currentConversationId={currentConversationId} />
               </div>
             </div>

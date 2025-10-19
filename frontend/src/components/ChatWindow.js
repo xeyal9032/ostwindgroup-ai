@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Button } from './ui/Button';
 import Message from './Message';
-import { Send, Bot } from 'lucide-react';
+import { Send, Bot, AlertCircle } from 'lucide-react';
 import { conversationService, chatService } from '../services/api';
 import EmojiPickerButton from './EmojiPickerButton';
 import { FileUploadButton, FilePreview } from './FileUpload';
@@ -9,6 +9,8 @@ import VoiceMessageButton from './VoiceMessageButton';
 import ThemeToggle from './ThemeToggle';
 import ThemeSelector from './ThemeSelector';
 import { useNotifications } from './NotificationBell';
+import { handleError, showErrorNotification, retryRequest } from '../utils/errorHandler';
+import { useDebounce, usePerformanceMonitor } from '../utils/performance';
 
 const ChatWindow = ({ conversationId, onNewConversation, onMessagesUpdate }) => {
   const [messages, setMessages] = useState([]);
@@ -16,8 +18,16 @@ const ChatWindow = ({ conversationId, onNewConversation, onMessagesUpdate }) => 
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
+  const [error, setError] = useState(null);
+  const [retryCount, setRetryCount] = useState(0);
   const messagesEndRef = useRef(null);
   const { showNotification } = useNotifications();
+  
+  // Performance monitoring
+  const renderCount = usePerformanceMonitor('ChatWindow');
+  
+  // Debounced input for better performance
+  const debouncedInputMessage = useDebounce(inputMessage, 300);
 
   useEffect(() => {
     if (conversationId) {
@@ -39,6 +49,8 @@ const ChatWindow = ({ conversationId, onNewConversation, onMessagesUpdate }) => 
     if (!conversationId) return;
     
     setLoadingMessages(true);
+    setError(null);
+    
     try {
       // Önce imported mesajları kontrol et
       const importedData = JSON.parse(localStorage.getItem('imported_messages') || '{}');
@@ -49,16 +61,31 @@ const ChatWindow = ({ conversationId, onNewConversation, onMessagesUpdate }) => 
         return;
       }
 
-      // Yoksa normal API'den yükle
-      const data = await conversationService.getMessages(conversationId);
+      // Retry mechanism ile API'den yükle
+      const data = await retryRequest(
+        () => conversationService.getMessages(conversationId),
+        3,
+        1000
+      );
+      
       setMessages(data);
       onMessagesUpdate && onMessagesUpdate(data);
+      setRetryCount(0);
     } catch (error) {
-      console.error('Mesajlar yüklenirken hata:', error);
+      const errorInfo = handleError(error, 'loadMessages');
+      setError(errorInfo);
+      showErrorNotification(error, showNotification);
+      
+      // Fallback: local storage'dan yükle
+      const localMessages = JSON.parse(localStorage.getItem('messages') || '{}');
+      if (localMessages[conversationId]) {
+        setMessages(localMessages[conversationId]);
+        onMessagesUpdate && onMessagesUpdate(localMessages[conversationId]);
+      }
     } finally {
       setLoadingMessages(false);
     }
-  }, [conversationId, onMessagesUpdate]);
+  }, [conversationId, onMessagesUpdate, showNotification]);
 
   const handleSendMessage = useCallback(async (e) => {
     e.preventDefault();
@@ -79,9 +106,14 @@ const ChatWindow = ({ conversationId, onNewConversation, onMessagesUpdate }) => 
 
     try {
       console.log('Sending message:', inputMessage.trim(), 'to conversation:', conversationId || 'new');
-      console.log('API Base URL:', process.env.REACT_APP_API_URL || '/.netlify/functions/api');
       
-      const response = await chatService.sendMessage(conversationId || 'new', inputMessage.trim());
+      // Retry mechanism ile mesaj gönder
+      const response = await retryRequest(
+        () => chatService.sendMessage(conversationId || 'new', inputMessage.trim()),
+        2,
+        2000
+      );
+      
       console.log('Received response:', response);
       
       // Update messages with server response
@@ -106,10 +138,19 @@ const ChatWindow = ({ conversationId, onNewConversation, onMessagesUpdate }) => 
           type: 'info'
         });
       }
+      
+      setError(null);
+      setRetryCount(0);
     } catch (error) {
-      console.error('Mesaj gönderilirken hata:', error);
+      const errorInfo = handleError(error, 'sendMessage');
+      setError(errorInfo);
+      showErrorNotification(error, showNotification);
+      
       // Remove the optimistic message on error
       setMessages(prev => prev.filter(msg => msg.id !== userMessage.id));
+      
+      // Increment retry count
+      setRetryCount(prev => prev + 1);
     } finally {
       setIsLoading(false);
     }
@@ -142,34 +183,48 @@ const ChatWindow = ({ conversationId, onNewConversation, onMessagesUpdate }) => 
     onMessagesUpdate && onMessagesUpdate(messages);
   };
 
-  const formatTime = (timestamp) => {
+  // Memoized time formatter
+  const formatTime = useCallback((timestamp) => {
     return new Date(timestamp).toLocaleTimeString('tr-TR', {
       hour: '2-digit',
       minute: '2-digit'
     });
-  };
+  }, []);
+
+  // Memoized message list for better performance
+  const memoizedMessages = useMemo(() => {
+    return messages.map((message, index) => (
+      <div key={message.id} className={`animate-fade-in-up animate-delay-${Math.min(index * 100, 500)}`}>
+        <Message
+          message={message}
+          time={formatTime(message.timestamp)}
+          onEdit={handleEditMessage}
+        />
+      </div>
+    ));
+  }, [messages, formatTime]);
 
   return (
     <div className="flex flex-col h-full">
       {/* Desktop Header - Hidden on mobile */}
-      <div className="hidden md:block p-6 glass-card border-b border-white/20 animate-fade-in-up">
+      <div className="hidden md:block chatgpt-header">
         <div className="flex items-center space-x-4">
-          <div className="w-12 h-12 bg-gradient-to-br from-purple-500 via-pink-500 to-red-500 rounded-2xl flex items-center justify-center shadow-glow animate-float">
-            <Bot className="w-6 h-6 text-white" />
+          <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center">
+            <Bot className="w-4 h-4 text-white" />
           </div>
           <div className="flex-1">
-            <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-red-600 bg-clip-text text-transparent">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
               {conversationId ? 'AI Asistan' : 'Yeni Sohbet'}
             </h2>
-            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+            <p className="text-sm text-gray-500 dark:text-gray-400">
               {conversationId ? 'Size yardımcı olmaya hazırım' : 'Hemen başlayalım'}
             </p>
           </div>
           <div className="flex items-center space-x-3">
             {conversationId && (
-              <div className="flex items-center space-x-2 px-4 py-2 bg-green-100 dark:bg-green-900/30 rounded-full">
+              <div className="flex items-center space-x-2 px-3 py-1 bg-green-100 dark:bg-green-900/30 rounded-full">
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-sm text-green-600 dark:text-green-400 font-medium">Çevrimiçi</span>
+                <span className="text-xs text-green-600 dark:text-green-400 font-medium">Çevrimiçi</span>
               </div>
             )}
             <div className="flex items-center space-x-1">
@@ -181,61 +236,88 @@ const ChatWindow = ({ conversationId, onNewConversation, onMessagesUpdate }) => 
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-gradient-to-b from-transparent via-transparent to-transparent">
+      <div className="chatgpt-messages">
         {loadingMessages ? (
-          <div className="flex justify-center items-center h-32">
-            <div className="flex items-center space-x-3 text-slate-600 dark:text-slate-400">
-              <div className="w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
-              <span className="text-sm font-medium">Mesajlar yükleniyor...</span>
+          <div className="chatgpt-loading">
+            <div className="w-6 h-6 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center">
+              <Bot className="w-3 h-3 text-white" />
             </div>
+            <span className="text-sm font-medium">Mesajlar yükleniyor...</span>
+          </div>
+        ) : error ? (
+          <div className="chatgpt-empty-state">
+            <div className="chatgpt-empty-icon bg-red-500">
+              <AlertCircle className="w-8 h-8 text-white" />
+            </div>
+            <h3 className="chatgpt-empty-title">
+              Bağlantı Hatası
+            </h3>
+            <p className="chatgpt-empty-description">
+              {error.message}
+            </p>
+            <div className="flex space-x-3">
+              <button
+                onClick={() => {
+                  setError(null);
+                  loadMessages();
+                }}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
+              >
+                Tekrar Dene
+              </button>
+              <button
+                onClick={() => {
+                  setError(null);
+                  window.location.reload();
+                }}
+                className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm"
+              >
+                Sayfayı Yenile
+              </button>
+            </div>
+            {retryCount > 0 && (
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                Deneme sayısı: {retryCount}
+              </p>
+            )}
           </div>
         ) : messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-center px-4 animate-fade-in-up">
-            <div className="w-20 h-20 bg-gradient-to-br from-purple-500 via-pink-500 to-red-500 rounded-3xl flex items-center justify-center shadow-glow-lg animate-float mb-6">
-              <Bot className="w-10 h-10 text-white" />
+          <div className="chatgpt-empty-state">
+            <div className="chatgpt-empty-icon">
+              <Bot className="w-8 h-8 text-white" />
             </div>
-            <h3 className="text-2xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-red-600 bg-clip-text text-transparent mb-3">
+            <h3 className="chatgpt-empty-title">
               OstWindGroup AI'ya Hoş Geldiniz
             </h3>
-            <p className="text-lg text-slate-600 dark:text-slate-400 mb-6 max-w-md leading-relaxed">
+            <p className="chatgpt-empty-description">
               Size nasıl yardımcı olabilirim? Aşağıya mesajınızı yazın ve akıllı sohbetimizi başlatalım.
             </p>
             <div className="flex flex-wrap gap-2 justify-center">
-              <span className="px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-full text-sm">
+              <span className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-full text-sm">
                 💡 Soru sorabilirsiniz
               </span>
-              <span className="px-3 py-1 bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300 rounded-full text-sm">
+              <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full text-sm">
                 🚀 Projelerinizde yardım
               </span>
-              <span className="px-3 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-full text-sm">
+              <span className="px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-full text-sm">
                 📚 Bilgi alabilirsiniz
               </span>
             </div>
           </div>
         ) : (
-          messages.map((message, index) => (
-            <div key={message.id} className={`animate-fade-in-up animate-delay-${Math.min(index * 100, 500)}`}>
-              <Message
-                message={message}
-                time={formatTime(message.timestamp)}
-                onEdit={handleEditMessage}
-              />
-            </div>
-          ))
+          memoizedMessages
         )}
         
         {isLoading && (
-          <div className="flex items-center space-x-3 text-slate-600 dark:text-slate-400 animate-fade-in-up">
-            <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-              <Bot className="w-4 h-4 text-white" />
+          <div className="chatgpt-loading">
+            <div className="w-6 h-6 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center">
+              <Bot className="w-3 h-3 text-white" />
             </div>
-            <div className="flex items-center space-x-2">
-              <span className="text-sm font-medium">Yazıyor</span>
-              <div className="flex space-x-1">
-                <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce"></div>
-                <div className="w-2 h-2 bg-pink-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                <div className="w-2 h-2 bg-red-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-              </div>
+            <span className="text-sm font-medium">Yazıyor</span>
+            <div className="chatgpt-loading-dots">
+              <div className="chatgpt-loading-dot"></div>
+              <div className="chatgpt-loading-dot"></div>
+              <div className="chatgpt-loading-dot"></div>
             </div>
           </div>
         )}
@@ -244,59 +326,58 @@ const ChatWindow = ({ conversationId, onNewConversation, onMessagesUpdate }) => 
       </div>
 
       {/* Input */}
-      <div className="p-6 glass-card border-t border-white/20 animate-fade-in-up">
+      <div className="chatgpt-input-area">
         {selectedFile && (
-          <div className="mb-4">
+          <div className="mb-4 max-w-2xl mx-auto">
             <FilePreview file={selectedFile} onRemove={handleFileRemove} />
           </div>
         )}
         
-        <form onSubmit={handleSendMessage} className="flex space-x-3">
-          <div className="flex-1 relative">
-            <div className="relative glass-card border border-white/20 rounded-2xl shadow-glow hover:shadow-glow-lg transition-all duration-300 focus-within:ring-2 focus-within:ring-purple-500/50 focus-within:border-purple-500/50">
-              <textarea
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                placeholder="Mesajınızı yazın..."
-                disabled={isLoading}
-                className="w-full min-h-[56px] max-h-32 px-4 py-4 pr-16 bg-transparent border-0 rounded-2xl resize-none focus:outline-none placeholder:text-slate-500 dark:placeholder:text-slate-400 text-slate-900 dark:text-slate-100"
-                rows={1}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSendMessage(e);
-                  }
-                }}
-                onInput={(e) => {
-                  e.target.style.height = 'auto';
-                  e.target.style.height = Math.min(e.target.scrollHeight, 128) + 'px';
-                }}
-              />
-              
-              <div className="absolute right-3 top-3 flex items-center space-x-1">
-                <VoiceMessageButton onVoiceMessage={handleVoiceMessage} disabled={isLoading} />
-                <FileUploadButton onFileSelect={handleFileSelect} disabled={isLoading} />
-                <EmojiPickerButton onEmojiSelect={handleEmojiSelect} />
-              </div>
+        <div className="chatgpt-input-container">
+          <form onSubmit={handleSendMessage} className="relative">
+            <textarea
+              value={inputMessage}
+              onChange={(e) => setInputMessage(e.target.value)}
+              placeholder="Mesajınızı yazın..."
+              disabled={isLoading}
+              className="chatgpt-input"
+              rows={1}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSendMessage(e);
+                }
+              }}
+              onInput={(e) => {
+                e.target.style.height = 'auto';
+                e.target.style.height = Math.min(e.target.scrollHeight, 128) + 'px';
+              }}
+            />
+            
+            <div className="absolute right-2 top-2 flex items-center space-x-1">
+              <VoiceMessageButton onVoiceMessage={handleVoiceMessage} disabled={isLoading} />
+              <FileUploadButton onFileSelect={handleFileSelect} disabled={isLoading} />
+              <EmojiPickerButton onEmojiSelect={handleEmojiSelect} />
             </div>
-          </div>
-          
-          <Button 
-            type="submit" 
-            disabled={(!inputMessage.trim() && !selectedFile) || isLoading}
-            className="h-14 w-14 rounded-2xl bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 hover:from-purple-600 hover:via-pink-600 hover:to-red-600 shadow-glow hover:shadow-glow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed animate-scale-in"
-            size="icon"
-          >
-            {isLoading ? (
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            ) : (
-              <Send className="w-5 h-5 text-white" />
-            )}
-          </Button>
-        </form>
+            
+            <button 
+              type="submit" 
+              disabled={(!inputMessage.trim() && !selectedFile) || isLoading}
+              className="chatgpt-send-button"
+            >
+              {isLoading ? (
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <Send className="w-4 h-4 text-white" />
+              )}
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   );
 };
+
+ChatWindow.displayName = 'ChatWindow';
 
 export default ChatWindow;
