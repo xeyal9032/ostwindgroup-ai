@@ -1,0 +1,48 @@
+[build]
+  publish = "app/frontend/build"
+  command = "cd app/frontend && npm install && npm run build"
+
+[build.environment]
+  NODE_VERSION = "18"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[context.production.environment]
+  REACT_APP_API_URL = "/.netlify/functions"
+  REACT_APP_SITE_URL = "https://ostwindgroupai.netlify.app"
+
+[context.development.environment]
+  REACT_APP_API_URL = "/.netlify/functions"
+  REACT_APP_SITE_URL = "http://localhost:3000"
+
+# Custom domain configuration
+[context.production]
+  command = "cd app/frontend && npm install && npm run build"
+
+# Performance optimization
+[build.processing]
+  skip_processing = false
+
+[build.processing.css]
+  bundle = true
+  minify = true
+
+[build.processing.js]
+  bundle = true
+  minify = true
+
+[build.processing.html]
+  pretty_urls = true
+
+# Security headers
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://api.groq.com https://api.openai.com https://api.anthropic.com https://api.cohere.ai https://api.together.xyz https://api-inference.huggingface.co; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://api.groq.com https://api.openai.com https://api.anthropic.com https://api.cohere.ai https://api.together.xyz https://api-inference.huggingface.co http://localhost:11434;"
