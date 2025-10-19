@@ -11,98 +11,137 @@ exports.handler = async (event, context) => {
 
   try {
     const body = JSON.parse(event.body || '{}');
-    const { message, conversation_id, messageHistory = [] } = body;
+    const { message, conversation_id, messageHistory = [], preferredModel = 'groq' } = body;
     
     console.log('Message:', message);
     console.log('Conversation ID:', conversation_id);
-    console.log('Message History Length:', messageHistory.length);
+    console.log('Preferred Model:', preferredModel);
 
-    // Groq API ile gerçek AI yanıtı al
-    const groqApiKey = process.env.GROQ_API_KEY;
-    
-    if (!groqApiKey) {
-      console.log('⚠️ GROQ_API_KEY not found, using fallback');
-      return {
-        statusCode: 200,
-        headers,
-        body: JSON.stringify({
-          conversation_id: conversation_id,
-          message: "⚠️ AI servisi şu anda kullanılamıyor. Lütfen daha sonra tekrar deneyin.",
-          timestamp: new Date().toISOString(),
-          used_api: 'fallback-no-key'
-        }),
-      };
-    }
-
-    // Groq API çağrısı
-    const groqMessages = [
-      {
-        role: 'system',
-        content: 'Sen OstWindGroup AI asistanısın. Kullanıcıya yardımcı olan, detaylı ve faydalı yanıtlar veren bir asistansın. Türkçe yanıt ver. Kullanıcının önceki mesajlarını dikkate al ve konuşma bağlamını koru.'
-      },
-      ...messageHistory.map(msg => ({
-        role: msg.role === 'user' ? 'user' : 'assistant',
-        content: msg.content
-      })),
-      {
-        role: 'user',
-        content: message
-      }
-    ];
-
-    console.log('🤖 Calling Groq API...');
-    
-    const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${groqApiKey}`
-      },
-      body: JSON.stringify({
-        model: 'llama3-70b-8192',
-        messages: groqMessages,
-        max_tokens: 2000,
-        temperature: 0.8,
-        stream: false
-      })
-    });
-
-    if (!groqResponse.ok) {
-      const errorData = await groqResponse.json();
-      console.error('❌ Groq API error:', errorData);
+    // Önce Groq API'yi dene
+    if (preferredModel === 'groq' || preferredModel === 'auto') {
+      const groqApiKey = process.env.GROQ_API_KEY;
       
-      return {
-        statusCode: 200,
-        headers,
-        body: JSON.stringify({
-          conversation_id: conversation_id,
-          message: "⚠️ AI servisi geçici olarak kullanılamıyor. Lütfen daha sonra tekrar deneyin.",
-          timestamp: new Date().toISOString(),
-          used_api: 'fallback-api-error'
-        }),
-      };
+      if (groqApiKey) {
+        try {
+          console.log('🤖 Trying Groq API...');
+          
+          const groqMessages = [
+            {
+              role: 'system',
+              content: 'Sen OstWindGroup AI asistanısın. Kullanıcıya yardımcı olan, detaylı ve faydalı yanıtlar veren bir asistansın. Türkçe yanıt ver. Kullanıcının önceki mesajlarını dikkate al ve konuşma bağlamını koru.'
+            },
+            ...messageHistory.map(msg => ({
+              role: msg.role === 'user' ? 'user' : 'assistant',
+              content: msg.content
+            })),
+            {
+              role: 'user',
+              content: message
+            }
+          ];
+
+          const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${groqApiKey}`
+            },
+            body: JSON.stringify({
+              model: 'llama3-70b-8192',
+              messages: groqMessages,
+              max_tokens: 2000,
+              temperature: 0.8,
+              stream: false
+            })
+          });
+
+          if (groqResponse.ok) {
+            const groqData = await groqResponse.json();
+            const aiResponse = groqData.choices[0]?.message?.content || 'Yanıt alınamadı.';
+
+            console.log('✅ Groq API response received');
+
+            return {
+              statusCode: 200,
+              headers,
+              body: JSON.stringify({
+                conversation_id: conversation_id,
+                message: aiResponse,
+                timestamp: new Date().toISOString(),
+                used_api: 'groq-llama3-70b'
+              }),
+            };
+          }
+        } catch (groqError) {
+          console.log('⚠️ Groq API failed, trying Ollama...', groqError.message);
+        }
+      }
     }
 
-    const groqData = await groqResponse.json();
-    const aiResponse = groqData.choices[0]?.message?.content || 'Yanıt alınamadı.';
+    // Ollama'yı dene (local development için)
+    if (preferredModel === 'ollama' || preferredModel === 'auto') {
+      try {
+        console.log('🦙 Trying Ollama API...');
+        
+        // Ollama mesaj formatı
+        const ollamaPrompt = messageHistory.length > 0 
+          ? `${messageHistory.map(msg => `${msg.role === 'user' ? 'Kullanıcı' : 'Asistan'}: ${msg.content}`).join('\n')}\nKullanıcı: ${message}\nAsistan:`
+          : message;
 
-    console.log('✅ Groq API response received');
+        const ollamaResponse = await fetch('http://localhost:11434/api/generate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'xeyalcemilli9032/ostwindgroupai-multilingual',
+            prompt: ollamaPrompt,
+            stream: false,
+            options: {
+              temperature: 0.8,
+              max_tokens: 2000
+            }
+          })
+        });
 
+        if (ollamaResponse.ok) {
+          const ollamaData = await ollamaResponse.json();
+          const aiResponse = ollamaData.response || 'Yanıt alınamadı.';
+
+          console.log('✅ Ollama API response received');
+
+          return {
+            statusCode: 200,
+            headers,
+            body: JSON.stringify({
+              conversation_id: conversation_id,
+              message: aiResponse,
+              timestamp: new Date().toISOString(),
+              used_api: 'ollama-multilingual'
+            }),
+          };
+        }
+      } catch (ollamaError) {
+        console.log('⚠️ Ollama API failed:', ollamaError.message);
+      }
+    }
+
+    // Fallback yanıt
+    console.log('⚠️ All APIs failed, using fallback');
     return {
       statusCode: 200,
       headers,
       body: JSON.stringify({
         conversation_id: conversation_id,
-        message: aiResponse,
+        message: "⚠️ AI servisleri şu anda kullanılamıyor. Lütfen daha sonra tekrar deneyin.\n\nKullanılabilir servisler:\n🤖 Groq API (Cloud)\n🦙 Ollama (Local)\n\nLütfen GROQ_API_KEY'i kontrol edin veya Ollama'nın çalıştığından emin olun.",
         timestamp: new Date().toISOString(),
-        used_api: 'groq-llama3-70b'
+        used_api: 'fallback-all-failed'
       }),
     };
 
   } catch (error) {
     console.error('❌ Function error:', error);
     
-    // Hata durumunda fallback yanıt
     return {
       statusCode: 200,
       headers,
