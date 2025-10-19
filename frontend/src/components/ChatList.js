@@ -1,30 +1,17 @@
 import React, { useState } from 'react';
-import { Button } from './ui/Button';
 import { Input } from './ui/Input';
 import { Card, CardContent } from './ui/Card';
-import { Plus, MessageSquare, Trash2, Search, X, BarChart3, Activity, Download, Gamepad2 } from 'lucide-react';
+import { MessageSquare, Search, X, Trash2 } from 'lucide-react';
 import { cn } from '../lib/utils';
-import ThemeToggle from './ThemeToggle';
-import ThemeSelector from './ThemeSelector';
-import ChatStats from './ChatStats';
-import AnalyticsDashboard from './AnalyticsDashboard';
-import NotificationBell from './NotificationBell';
-import ExportImport from './ExportImport';
-import AIGames from './AIGames';
 
 const ChatList = ({
   conversations,
   currentConversationId,
-  onNewConversation,
   onDeleteConversation,
   onSelectConversation,
   allMessages = []
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [showStats, setShowStats] = useState(false);
-  const [showAnalytics, setShowAnalytics] = useState(false);
-  const [showExport, setShowExport] = useState(false);
-  const [showGames, setShowGames] = useState(false);
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -58,48 +45,7 @@ const ChatList = ({
               <p className="text-xs text-slate-600 dark:text-slate-400">Akıllı Asistan</p>
             </div>
           </div>
-          <div className="flex items-center space-x-1">
-            <NotificationBell />
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 hover:bg-purple-100 dark:hover:bg-purple-900/30"
-              onClick={() => setShowStats(!showStats)}
-              title="İstatistikler"
-            >
-              <BarChart3 className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 hover:bg-pink-100 dark:hover:bg-pink-900/30"
-              onClick={() => setShowExport(!showExport)}
-              title="Export/Import"
-            >
-              <Download className="w-4 h-4 text-pink-600 dark:text-pink-400" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 hover:bg-red-100 dark:hover:bg-red-900/30"
-              onClick={() => setShowGames(!showGames)}
-              title="AI Oyunları"
-            >
-              <Gamepad2 className="w-4 h-4 text-red-600 dark:text-red-400" />
-            </Button>
-            <ThemeSelector />
-            <ThemeToggle />
-          </div>
         </div>
-        
-        <Button
-          onClick={onNewConversation}
-          className="w-full h-12 bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 hover:from-purple-600 hover:via-pink-600 hover:to-red-600 shadow-glow hover:shadow-glow-lg transition-all duration-300 rounded-xl font-medium"
-          size="sm"
-        >
-          <Plus className="w-5 h-5 mr-2" />
-          Yeni Sohbet Başlat
-        </Button>
         
         {/* Arama */}
         <div className="mt-4 relative">
@@ -125,13 +71,7 @@ const ChatList = ({
 
       {/* Conversations List */}
       <div className="flex-1 overflow-y-auto p-4">
-        {showGames ? (
-          <AIGames currentConversationId={currentConversationId} />
-        ) : showExport ? (
-          <ExportImport conversations={conversations} currentConversationId={currentConversationId} />
-        ) : showStats ? (
-          <ChatStats conversations={conversations} messages={allMessages} />
-        ) : conversations.length === 0 ? (
+        {conversations.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center py-12 animate-fade-in-up">
             <div className="w-20 h-20 bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 rounded-3xl flex items-center justify-center mb-6 animate-float">
               <MessageSquare className="w-10 h-10 text-purple-600 dark:text-purple-400" />

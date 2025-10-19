@@ -361,6 +361,11 @@ body {
   white-space: pre-wrap;
 }
 
+/* Footer Styles */
+.footer-padding {
+  padding-bottom: 120px; /* Footer yüksekliği için */
+}
+
 /* Mobile Navigation Styles */
 .mobile-nav {
   position: fixed;

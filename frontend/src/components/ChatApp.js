@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import ChatList from './ChatList';
 import ChatWindow from './ChatWindow';
 import MobileNavigation from './MobileNavigation';
+import Footer from './Footer';
 import { conversationService } from '../services/api';
 
 const ChatApp = () => {
@@ -13,6 +14,8 @@ const ChatApp = () => {
   const [allMessages, setAllMessages] = useState([]);
   const [showStats, setShowStats] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(false);
+  const [showExport, setShowExport] = useState(false);
+  const [showGames, setShowGames] = useState(false);
 
   useEffect(() => {
     loadConversations();
@@ -76,7 +79,6 @@ const ChatApp = () => {
         <ChatList
           conversations={conversations}
           currentConversationId={currentConversationId}
-          onNewConversation={handleNewConversation}
           onDeleteConversation={handleDeleteConversation}
           onSelectConversation={handleSelectConversation}
           allMessages={allMessages}
@@ -104,7 +106,7 @@ const ChatApp = () => {
           </div>
         </div>
 
-        <div className="flex-1 flex flex-col md:pb-0 pb-20">
+        <div className="flex-1 flex flex-col md:pb-0 pb-32 footer-padding">
           <ChatWindow
             conversationId={currentConversationId}
             onNewConversation={handleNewConversation}
@@ -113,13 +115,17 @@ const ChatApp = () => {
         </div>
       </div>
 
-      {/* Mobile Navigation */}
-      <MobileNavigation
+      {/* Footer */}
+      <Footer
         onNewConversation={handleNewConversation}
         onToggleStats={() => setShowStats(!showStats)}
         onToggleAnalytics={() => setShowAnalytics(!showAnalytics)}
+        onToggleExport={() => setShowExport(!showExport)}
+        onToggleGames={() => setShowGames(!showGames)}
         showStats={showStats}
         showAnalytics={showAnalytics}
+        showExport={showExport}
+        showGames={showGames}
       />
     </div>
   );
