@@ -97,14 +97,15 @@ export const conversationService = {
 };
 
 export const chatService = {
-  sendMessage: async (conversationId, message) => {
-    console.log('🎯 ChatService - sendMessage called:', { conversationId, message });
+  sendMessage: async (conversationId, message, messageHistory = []) => {
+    console.log('🎯 ChatService - sendMessage called:', { conversationId, message, messageHistory: messageHistory.length });
     console.log('🌐 API Base URL:', API_BASE_URL);
     
     try {
       const response = await api.post('/chat', {
         conversation_id: conversationId,
-        message: message
+        message: message,
+        messageHistory: messageHistory
       });
       
       console.log('✅ ChatService - API response received:', response.data);

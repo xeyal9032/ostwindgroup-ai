@@ -22,9 +22,11 @@ exports.handler = async (event, context) => {
 
   try {
     const body = JSON.parse(event.body);
-    const { conversation_id, message } = body;
+    const { conversation_id, message, messageHistory = [] } = body;
     
     console.log('Message:', message);
+    console.log('Conversation ID:', conversation_id);
+    console.log('Message History Length:', messageHistory.length);
     
     if (!message || !message.trim()) {
       return { 
@@ -62,11 +64,39 @@ exports.handler = async (event, context) => {
     } else if (lowerCaseMessage.includes('ne yapabilirsin') || lowerCaseMessage.includes('ne yapa biliyon') || lowerCaseMessage.includes('yeteneklerin')) {
       aiResponse = `🚀 Size şu konularda yardımcı olabilirim:\n\n🤖 **Yapay Zeka & Makine Öğrenmesi**\n• AI modelleri ve algoritmalar\n• Chatbot geliştirme\n• Veri analizi ve görselleştirme\n\n💻 **Kod Yazma & Programlama**\n• JavaScript, Python, Java, C#\n• Web geliştirme (React, Vue, Angular)\n• Mobil uygulama geliştirme\n• Veritabanı tasarımı\n\n🎨 **Tasarım & UI/UX**\n• Web ve mobil tasarım\n• Kullanıcı deneyimi optimizasyonu\n• Prototipleme ve wireframing\n\n📊 **Proje Yönetimi**\n• Proje planlama ve organizasyon\n• Teknik dokümantasyon\n• Test stratejileri\n\n🇺🇦 **Ukrayna Üniversiteleri**\n• Üniversite bilgileri ve fakülteler\n• Təhsil haqları ve şərtlər\n• Fakültə kodları ve açıqlamaları\n• Kariyer rehberliği\n\n💡 **İnovasyon & Fikirler**\n• Yeni proje fikirleri\n• Teknoloji trendleri\n• Çözüm önerileri\n\nHangi konuda detaylı bilgi almak istersiniz?`;
     } else {
-      // Ücretsiz AI API'leri dene (sırayla)
-      const freeApis = [
-        {
-          name: 'Groq',
-          url: 'https://api.groq.com/openai/v1/chat/completions',
+      // Konuşma geçmişini hazırla
+      const conversationHistory = [];
+      
+      // System mesajı
+      conversationHistory.push({
+        role: 'system',
+        content: 'Sen OstWindGroup AI asistanısın. Kullanıcıya yardımcı olan, detaylı ve faydalı yanıtlar veren bir asistansın. Türkçe yanıt ver. Kullanıcının önceki mesajlarını dikkate al ve konuşma bağlamını koru. Her soruya özel ve detaylı yanıt ver.'
+      });
+      
+      // Son 10 mesajı ekle (çok fazla olmasın)
+      const recentHistory = messageHistory.slice(-10);
+      for (const msg of recentHistory) {
+        if (msg.role === 'user' || msg.role === 'assistant') {
+          conversationHistory.push({
+            role: msg.role,
+            content: msg.content
+          });
+        }
+      }
+      
+      // Mevcut mesajı ekle
+      conversationHistory.push({
+        role: 'user',
+        content: message
+      });
+
+      console.log('📝 Conversation History:', conversationHistory.length, 'messages');
+      console.log('📝 Last few messages:', conversationHistory.slice(-4));
+
+      // Groq API'yi dene
+      try {
+        console.log('🤖 Trying Groq API...');
+        const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -74,74 +104,36 @@ exports.handler = async (event, context) => {
           },
           body: JSON.stringify({
             model: 'llama3-70b-8192',
-            messages: [
-              {
-                role: 'system',
-                content: 'Sen OstWindGroup AI asistanısın. Kullanıcıya yardımcı olan, detaylı ve faydalı yanıtlar veren bir asistansın. Türkçe yanıt ver. Kullanıcının önceki mesajlarını dikkate al ve konuşma bağlamını koru.'
-              },
-              {
-                role: 'user',
-                content: message
-              }
-            ],
-            max_tokens: 1500,
+            messages: conversationHistory,
+            max_tokens: 2000,
             temperature: 0.8,
             stream: false
-          }),
-          parseResponse: (data) => data.choices[0]?.message?.content || ''
-        },
-        {
-          name: 'Hugging Face',
-          url: 'https://api-inference.huggingface.co/models/microsoft/DialoGPT-medium',
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            inputs: message,
-            parameters: {
-              max_length: 150,
-              temperature: 0.7
-            }
-          }),
-          parseResponse: (data) => data[0]?.generated_text || ''
-        }
-      ];
+          })
+        });
 
-      // Ücretsiz API'leri dene
-      for (const api of freeApis) {
-        try {
-          console.log(`🤖 ${api.name} API deneniyor...`);
-          const response = await fetch(api.url, {
-            method: api.method,
-            headers: api.headers,
-            body: api.body
-          });
-
-          if (response.ok) {
-            const data = await response.json();
-            aiResponse = api.parseResponse(data);
-            if (aiResponse) {
-              console.log(`✅ ${api.name} yanıtı alındı:`, aiResponse);
-              break;
-            }
-          } else {
-            console.log(`❌ ${api.name} API hatası:`, response.status);
+        if (groqResponse.ok) {
+          const groqData = await groqResponse.json();
+          aiResponse = groqData.choices[0]?.message?.content || '';
+          
+          if (aiResponse) {
+            console.log('✅ Groq API success:', aiResponse.substring(0, 100) + '...');
           }
-        } catch (error) {
-          console.error(`❌ ${api.name} API hatası:`, error);
+        } else {
+          console.log('❌ Groq API error:', groqResponse.status);
         }
+      } catch (groqError) {
+        console.error('❌ Groq API error:', groqError);
       }
 
-      // Eğer ücretsiz API'ler çalışmadıysa akıllı fallback sistemi kullan
+      // Eğer Groq çalışmadıysa akıllı fallback sistemi kullan
       if (!aiResponse) {
-        console.log('🤖 Akıllı fallback sistemi kullanılıyor...');
+        console.log('🤖 Using intelligent fallback system...');
         const engine = new IntelligentResponseEngine();
         aiResponse = engine.generateResponse(message, conversation_id);
       }
     }
 
-    console.log('📤 Sending intelligent response:', aiResponse.substring(0, 100) + '...');
+    console.log('📤 Sending response:', aiResponse.substring(0, 100) + '...');
     
     return {
       statusCode: 200,
@@ -150,7 +142,7 @@ exports.handler = async (event, context) => {
         conversation_id: conversation_id || 'new',
         message: aiResponse,
         timestamp: new Date().toISOString(),
-        systemType: 'intelligent-fallback'
+        systemType: 'groq-api'
       }),
     };
 

@@ -115,7 +115,14 @@ const ChatWindow = ({ conversationId, onNewConversation, onMessagesUpdate }) => 
         });
       } else {
         // Normal Netlify Functions kullan
-        response = await chatService.sendMessage(conversationId || 'new', inputMessage.trim());
+        // Mesaj geçmişini hazırla (son 10 mesaj)
+        const messageHistory = messages.slice(-10).map(msg => ({
+          role: msg.role,
+          content: msg.content,
+          timestamp: msg.timestamp
+        }));
+        
+        response = await chatService.sendMessage(conversationId || 'new', inputMessage.trim(), messageHistory);
         
         console.log('✅ ChatWindow - Response received:', response);
         
