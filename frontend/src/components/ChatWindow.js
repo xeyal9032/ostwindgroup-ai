@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Message from './Message';
 import { Send, Bot, AlertCircle } from 'lucide-react';
-import { conversationService, chatService } from '../services/api';
+import { conversationService, chatService, ollamaService } from '../services/api';
 import { useNotifications } from './NotificationBell';
 
 const ChatWindow = ({ conversationId, onNewConversation, onMessagesUpdate }) => {
@@ -10,6 +10,10 @@ const ChatWindow = ({ conversationId, onNewConversation, onMessagesUpdate }) => 
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [error, setError] = useState(null);
+  const [useOllama, setUseOllama] = useState(false);
+  const [ollamaStatus, setOllamaStatus] = useState(false);
+  const [availableModels, setAvailableModels] = useState([]);
+  const [selectedModel, setSelectedModel] = useState('llama2');
   const messagesEndRef = useRef(null);
   const { showNotification } = useNotifications();
 
@@ -20,6 +24,33 @@ const ChatWindow = ({ conversationId, onNewConversation, onMessagesUpdate }) => 
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Ollama durumunu kontrol et
+  useEffect(() => {
+    const checkOllamaStatus = async () => {
+      try {
+        const isRunning = await ollamaService.checkStatus();
+        setOllamaStatus(isRunning);
+        
+        if (isRunning) {
+          const models = await ollamaService.listModels();
+          setAvailableModels(models);
+          if (models.length > 0) {
+            setSelectedModel(models[0].name);
+          }
+        }
+      } catch (error) {
+        console.error('Ollama durumu kontrol edilemedi:', error);
+        setOllamaStatus(false);
+      }
+    };
+
+    checkOllamaStatus();
+    // Her 30 saniyede bir kontrol et
+    const interval = setInterval(checkOllamaStatus, 30000);
+    
+    return () => clearInterval(interval);
+  }, []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -58,28 +89,54 @@ const ChatWindow = ({ conversationId, onNewConversation, onMessagesUpdate }) => 
     setIsLoading(true);
     
     try {
-      console.log('🎯 ChatWindow - Sending message:', { conversationId, message: inputMessage.trim() });
-      const response = await chatService.sendMessage(conversationId || 'new', inputMessage.trim());
+      console.log('🎯 ChatWindow - Sending message:', { conversationId, message: inputMessage.trim(), useOllama });
       
-      console.log('✅ ChatWindow - Response received:', response);
+      let response;
       
-      const assistantMessage = {
-        id: (Date.now() + 1).toString(),
-        conversation_id: response.conversation_id,
-        role: 'assistant',
-        content: response.message,
-        timestamp: response.timestamp
-      };
-      
-      setMessages(prev => [...prev, assistantMessage]);
-      showNotification('Yeni AI Yanıtı', {
-        message: 'AI asistanınız yanıt verdi',
-        type: 'success',
-        duration: 3000
-      });
-      
-      if (!conversationId && response.conversation_id) {
-        onNewConversation && onNewConversation(response.conversation_id);
+      if (useOllama && ollamaStatus) {
+        // Ollama kullan
+        console.log('🤖 Using Ollama with model:', selectedModel);
+        response = await ollamaService.sendMessage(inputMessage.trim(), selectedModel);
+        
+        const assistantMessage = {
+          id: (Date.now() + 1).toString(),
+          conversation_id: conversationId || 'ollama-chat',
+          role: 'assistant',
+          content: response.message,
+          timestamp: response.timestamp,
+          model: response.model
+        };
+        
+        setMessages(prev => [...prev, assistantMessage]);
+        showNotification('Ollama Yanıtı', {
+          message: `${response.model} modeli ile yanıt verildi`,
+          type: 'success',
+          duration: 3000
+        });
+      } else {
+        // Normal Netlify Functions kullan
+        response = await chatService.sendMessage(conversationId || 'new', inputMessage.trim());
+        
+        console.log('✅ ChatWindow - Response received:', response);
+        
+        const assistantMessage = {
+          id: (Date.now() + 1).toString(),
+          conversation_id: response.conversation_id,
+          role: 'assistant',
+          content: response.message,
+          timestamp: response.timestamp
+        };
+        
+        setMessages(prev => [...prev, assistantMessage]);
+        showNotification('Yeni AI Yanıtı', {
+          message: 'AI asistanınız yanıt verdi',
+          type: 'success',
+          duration: 3000
+        });
+        
+        if (!conversationId && response.conversation_id) {
+          onNewConversation && onNewConversation(response.conversation_id);
+        }
       }
       
       setError(null);
@@ -239,6 +296,47 @@ const ChatWindow = ({ conversationId, onNewConversation, onMessagesUpdate }) => 
         
         <div ref={messagesEndRef} />
       </div>
+
+      {/* Ollama Control Panel */}
+      {ollamaStatus && (
+        <div className="ollama-control-panel">
+          <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border">
+            <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-2">
+                <div className={`w-2 h-2 rounded-full ${ollamaStatus ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                <span className="text-sm font-medium">Ollama</span>
+                <span className="text-xs text-gray-500">({ollamaStatus ? 'Çalışıyor' : 'Kapalı'})</span>
+              </div>
+              
+              {availableModels.length > 0 && (
+                <select
+                  value={selectedModel}
+                  onChange={(e) => setSelectedModel(e.target.value)}
+                  className="text-xs px-2 py-1 border rounded bg-white dark:bg-gray-700"
+                >
+                  {availableModels.map((model) => (
+                    <option key={model.name} value={model.name}>
+                      {model.name} ({(model.size / 1024 / 1024 / 1024).toFixed(1)}GB)
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <label className="flex items-center space-x-1 text-xs">
+                <input
+                  type="checkbox"
+                  checked={useOllama}
+                  onChange={(e) => setUseOllama(e.target.checked)}
+                  className="rounded"
+                />
+                <span>Ollama Kullan</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Input Area */}
       <div className="chat-input-area">

@@ -138,4 +138,70 @@ export const chatService = {
   },
 };
 
+// Ollama servisi - yerel AI modeli için
+export const ollamaService = {
+  sendMessage: async (message, model = 'llama2') => {
+    console.log('🤖 OllamaService - sendMessage called:', { message, model });
+    
+    try {
+      const response = await fetch('http://localhost:11434/api/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: model,
+          prompt: message,
+          stream: false
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Ollama API hatası: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      console.log('✅ OllamaService - Response received:', data);
+      
+      return {
+        message: data.response,
+        model: model,
+        timestamp: new Date().toISOString()
+      };
+    } catch (error) {
+      console.error('❌ OllamaService - Error:', error);
+      
+      // Ollama çalışmıyorsa fallback mesaj
+      if (error.message.includes('fetch')) {
+        throw new Error('Ollama sunucusu çalışmıyor. Lütfen Ollama\'yı başlatın.');
+      }
+      
+      throw new Error(`Ollama hatası: ${error.message}`);
+    }
+  },
+
+  // Mevcut modelleri listele
+  listModels: async () => {
+    try {
+      const response = await fetch('http://localhost:11434/api/tags');
+      const data = await response.json();
+      return data.models || [];
+    } catch (error) {
+      console.error('❌ OllamaService - Models list error:', error);
+      return [];
+    }
+  },
+
+  // Ollama durumunu kontrol et
+  checkStatus: async () => {
+    try {
+      const response = await fetch('http://localhost:11434/api/tags');
+      return response.ok;
+    } catch (error) {
+      return false;
+    }
+  }
+};
+
 export default api;
