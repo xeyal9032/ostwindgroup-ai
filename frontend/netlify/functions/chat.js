@@ -78,17 +78,17 @@ exports.handler = async (event, context) => {
       }
     }
 
-    // Ollama'yı dene (local development için)
+    // Ollama Hub'ı dene (production için)
     if (preferredModel === 'ollama' || preferredModel === 'auto') {
       try {
-        console.log('🦙 Trying Ollama API...');
+        console.log('🦙 Trying Ollama Hub API...');
         
         // Ollama mesaj formatı
         const ollamaPrompt = messageHistory.length > 0 
           ? `${messageHistory.map(msg => `${msg.role === 'user' ? 'Kullanıcı' : 'Asistan'}: ${msg.content}`).join('\n')}\nKullanıcı: ${message}\nAsistan:`
           : message;
 
-        const ollamaResponse = await fetch('http://localhost:11434/api/generate', {
+        const ollamaResponse = await fetch('https://ollama.com/api/generate', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -108,7 +108,7 @@ exports.handler = async (event, context) => {
           const ollamaData = await ollamaResponse.json();
           const aiResponse = ollamaData.response || 'Yanıt alınamadı.';
 
-          console.log('✅ Ollama API response received');
+          console.log('✅ Ollama Hub API response received');
 
           return {
             statusCode: 200,
@@ -117,12 +117,12 @@ exports.handler = async (event, context) => {
               conversation_id: conversation_id,
               message: aiResponse,
               timestamp: new Date().toISOString(),
-              used_api: 'ollama-multilingual'
+              used_api: 'ollama-hub-multilingual'
             }),
           };
         }
       } catch (ollamaError) {
-        console.log('⚠️ Ollama API failed:', ollamaError.message);
+        console.log('⚠️ Ollama Hub API failed:', ollamaError.message);
       }
     }
 
