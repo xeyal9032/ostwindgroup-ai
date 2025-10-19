@@ -94,10 +94,57 @@ exports.handler = async (event, context) => {
     } else if (lowerCaseMessage.includes('xarkov') || lowerCaseMessage.includes('harkov')) {
       aiResponse = '## 🏛️ Xarkov Universitetləri\n\n[Xarkov](https://telebe.biz.ua/) Ukrayna\'nın ən böyük təhsil mərkəzidir!\n\n### 🎓 **Əsas Universitetlər:**\n\n**1. Karazin adına Xarkov Milli Universiteti**\n• 1804-cü ildə yaradılıb\n• Ən köhnə universitet\n• Geniş fakültə yelpazəsi\n• Təhsil haqları: 1500-2500USD\n\n**2. Xarkov Politexnik institutu (ХПІ)**\n• 1885-ci ildə yaradılıb\n• Texniki və mühəndislik\n• Təhsil haqları: 1650-2500USD\n\n**3. Xarkov Milli Tibb Universiteti**\n• Tibb, stomatologiya\n• Rezidentura proqramları\n• Təhsil haqları: 2000-3000USD\n\n**4. Aerokosmik Universiteti (ХАІ)**\n• Aviasiya və kosmik\n• Raket-kosmik texnikası\n• Təhsil haqları: 1500-2000USD\n\n**5. Biotexnologiya Universiteti**\n• Biotexnologiya\n• Aqrar texnologiyalar\n• Təhsil haqları: 1300-1900USD\n\n**6. МЧС Universiteti**\n• Yanğın təhlükəsizliyi\n• Vətəndaş təhlükəsizliyi\n• Təhsil haqları: 1500-1700USD\n\n### 📞 **Xarkov Qəbul:**\n• **Telebe.Biz.Ua:** +380 96 258 00 00\n• **Email:** info@telebe.biz.ua\n\nHangi Xarkov universitetində oxumaq istəyirsiniz?';
     } else {
-      // Akıllı fallback sistemi kullan
-      console.log('🤖 Akıllı fallback sistemi kullanılıyor...');
-      const engine = new IntelligentResponseEngine();
-      aiResponse = engine.generateResponse(message, conversation_id);
+      // Ücretsiz AI API'leri dene (sırayla)
+      const freeApis = [
+        {
+          name: 'Hugging Face',
+          url: 'https://api-inference.huggingface.co/models/microsoft/DialoGPT-medium',
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            inputs: message,
+            parameters: {
+              max_length: 150,
+              temperature: 0.7
+            }
+          }),
+          parseResponse: (data) => data[0]?.generated_text || ''
+        }
+      ];
+
+      // Ücretsiz API'leri dene
+      for (const api of freeApis) {
+        try {
+          console.log(`🤖 ${api.name} API deneniyor...`);
+          const response = await fetch(api.url, {
+            method: api.method,
+            headers: api.headers,
+            body: api.body
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            aiResponse = api.parseResponse(data);
+            if (aiResponse) {
+              console.log(`✅ ${api.name} yanıtı alındı:`, aiResponse);
+              break;
+            }
+          } else {
+            console.log(`❌ ${api.name} API hatası:`, response.status);
+          }
+        } catch (error) {
+          console.error(`❌ ${api.name} API hatası:`, error);
+        }
+      }
+
+      // Eğer ücretsiz API'ler çalışmadıysa akıllı fallback sistemi kullan
+      if (!aiResponse) {
+        console.log('🤖 Akıllı fallback sistemi kullanılıyor...');
+        const engine = new IntelligentResponseEngine();
+        aiResponse = engine.generateResponse(message, conversation_id);
+      }
     }
 
     console.log('📤 Sending intelligent response:', aiResponse.substring(0, 100) + '...');
