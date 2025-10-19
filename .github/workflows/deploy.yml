@@ -3,8 +3,6 @@ name: Deploy OstWindGroup AI to GitHub Pages
 on:
   push:
     branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
 
 jobs:
   build-and-deploy:
@@ -18,21 +16,19 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: '18'
-        cache: 'npm'
-        cache-dependency-path: 'app/frontend/package-lock.json'
         
     - name: Install dependencies
-      working-directory: app/frontend
-      run: npm ci
+      run: |
+        cd app/frontend
+        npm install
         
     - name: Build
-      working-directory: app/frontend
-      run: npm run build
+      run: |
+        cd app/frontend
+        npm run build
         
     - name: Deploy to GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
-      if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: ./app/frontend/build
-        cname: frontend.ostwind.az
